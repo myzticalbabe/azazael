@@ -1,8 +1,8 @@
 {
  "engram": {
-  "as_of_id": 2253,
+  "as_of_id": 2303,
   "path": "~/.engram/engram.db",
-  "records": 1357,
+  "records": 1398,
   "types": [
    "bugfix",
    "decision",
@@ -23376,10 +23376,10 @@
    "id": "engram-2221",
    "kind": "engram:architecture",
    "line": 2221,
-   "rationale": "What: Designed Cursor Swarm v2 (MELLIFLIOUS) and wrote it to C:/Azazael/azazael/docs/CURSOR_SWARM_DESIGN_2026-11-13.md. Three phases PLAN/APPLY/VERIFY; atomicity bought with per-cursor git worktree isolation (rollback is byte-exact, not best-effort). Cursor = pipeline of roles (planner/applier/verifier/parity/abort), 13-field ledger extending v0's 7 with role/evidence/population/seconds/scope/legs, sha256 chain unchanged. Extended functionality over v0 and over the memo: 12-row delta table. Why: User asked for a cursor swarm with extended functionality. The memo (PMB 001a1d0897ff5_9bf9827a) was one paragraph; this makes it buildable with acceptance commands per phase. Where: C:/Azazael/azaz…",
+   "rationale": "What: CORRECTED 2026-11-15: the file docs/CURSOR_SWARM_DESIGN_2026-11-13.md was NEVER COMMITTED - `git log --all --diff-filter=A -- docs/CURSOR_SWARM_DESIGN_2026-11-13.md` returns nothing, on any branch. The cursor-swarm design that IS in the tree is docs/CURSOR_SWARM_A8_DESIGN_2026-11-13.md, with docs/CURSOR_SWARM_A8_AUDIT_2026-11-14.md as its audit; this v2 design's substance survives only in its measurements below. Its conclusion is now measured: 'sub-second can only mean the VERDICT, never the whole swarm' - measured 2026-11-15 as a 1756 ms whole-swarm verdict phase against a 309 ms per-cursor median, over 343 modules (see docs/CURSOR_SWARM_V1_WORKERS_2026-11-15.md). Three phases PLAN/A…",
    "remedy": "",
    "surface": "~/.engram/engram.db",
-   "symptom": "Designed Cursor Swarm v2 (MELLIFLIOUS) and wrote it to C:/Azazael/azazael/docs/CURSOR_SWARM_DESIGN_2026-11-13.md. Three phases PLAN/APPLY/VERIFY; atomicity bought with per-cursor git worktree isolation (rollback is byte-exact, not best-effort). Cursor = pipeline of roles (planner/applier/verifier/parity/abort), 13-field ledger extending v0's 7 with role/evidence/population/seconds/scope/legs, sha256 chain unchanged. Extended functionality over v0 and over the memo: 12-row delta table.",
+   "symptom": "CORRECTED 2026-11-15: the file docs/CURSOR_SWARM_DESIGN_2026-11-13.md was NEVER COMMITTED - `git log --all --diff-filter=A -- docs/CURSOR_SWARM_DESIGN_2026-11-13.md` returns nothing, on any branch. The cursor-swarm design that IS in the tree is docs/CURSOR_SWARM_A8_DESIGN_2026-11-13.md, with docs/CURSOR_SWARM_A8_AUDIT_2026-11-14.md as its audit; this v2 design's substance survives only in its measurements below. Its conclusion is now measured: 'sub-second can only mean the VERDICT, never the whole swarm' - measured 2026-11-15 as a 1756 ms whole-swarm verdict phase against a 309 ms per-cursor median, over 343 modules (see docs/CURSOR_SWARM_V1_WORKERS_2026-11-15.md). Three phases PLAN/APPLY/V…",
    "title": "Cursor swarm v2 design landed: measured floor, atomic transaction, 12-point extended functionality"
   },
   {
@@ -23717,6 +23717,498 @@
    "surface": "~/.engram/engram.db",
    "symptom": "Committed and pushed 11551580 (116 files) closing the license-sweep follow-ups, and made the standards driver report a defect it had been hiding.",
    "title": "License-sweep follow-ups: 4 CI defects, 30 contaminated governance files left untracked"
+  },
+  {
+   "cause": "commit_gate's range mode judges base..HEAD cumulatively, so a multi-commit session can never satisfy a per-commit cap; pushing commit-by-commit is not a substitute because the pre-push hook only sets ev_base when the pushed sha IS HEAD, so intermediate pushes run the tier index-scoped and only the last commit's changeset is read. One declared-bulk push judges the whole range once. Tier with both env vars: 33 ran, 1 failed, 0 blocking, exit 0 (arc-container advisory-red: eliza wing GAPS from ~2000 undeclared adopted/kali files, provenance wing BLOCKED golgotha).",
+   "date": "2026-11-15",
+   "id": "engram-2254",
+   "kind": "engram:decision",
+   "line": 2254,
+   "rationale": "What: Pushed the branch to origin (11551580..ff51d36c), 26 commits, working tree clean, 0/0 ahead-behind. Two declared escapes used on the push: ALLOW_SHARD_INTAKE=1 and ALLOW_BULK_COMMIT=1. Why: The evidence tier aborted the first push on ShardIntake (exit 2, no Kali census on this host); the retry then aborted on changeset-focus, which judges origin..HEAD cumulatively (95 source files vs the 8-file cap, first commit alone = 15 files). Where: scripts/commit_gate.py (GENERATED_LEDGERS exemption added and committed), tools/evidence_tier.sh (ShardIntake exit-2 message split), Project_ELIZA/tools/shard_intake.py (ALLOW_SHARD_INTAKE reaches the tool), .githooks/pre-push. Learned: commit_gate's…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Pushed the branch to origin (11551580..ff51d36c), 26 commits, working tree clean, 0/0 ahead-behind. Two declared escapes used on the push: ALLOW_SHARD_INTAKE=1 and ALLOW_BULK_COMMIT=1.",
+   "title": "Pushed azazael-intel-ultra-9-evo to origin at ff51d36c"
+  },
+  {
+   "cause": "(1) The arena is a SEPARATE project - tools/swarm_arena/ judges candidate texts; this is workers, so it lives in its own directory and imports nothing from the arena, with its own plain mouse-arrow pointer. (2) A parallel speed-up must be the quotient of two MEASURED wall times - summing contended per-worker times gave a bogus 14.43x where the honest figure was 2.86x (2.86x is real: CPython's ast holds the interpreter lock, so free-threading gives ~3x on AST walks, not 16x). (3) The swarm's whole verdict phase is 1756 ms, NOT sub-second; a single cursor's is (median 309 ms), and the cursor SCHEDULE is 868 ms of a 900 ms budget - the page claims only that one. (4) The page's own DOM self-tes…",
+   "date": "2026-11-16",
+   "id": "engram-2255",
+   "kind": "engram:architecture",
+   "line": 2255,
+   "rationale": "What: Built tools/cursor_swarm/ in C:/Azazael/azazael - a swarm of 72 worker cursors that read a scope of files, report what they found, and land a layer of a site, all-or-nothing. Commits d75f5df6, 7902bbe8, 4b072b40. Why: The TikTok video open in Firefox (@leos.logos/video/7704853939681873165) shows 72 AI agents each visible as a coloured mouse cursor assembling a site live. The A8 design + audit already described the shape; this implements it. Where: tools/cursor_swarm/{swarm.py,swarm_site.py,plan_workers.json,worker_frames.jsonl,README.md}, tests/test_cursor_swarm.py, docs/CURSOR_SWARM_V1_WORKERS_2026-11-15.md. Two shared tools edited: tools/claim_agreement.py (optional 'ts' column; has…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Built tools/cursor_swarm/ in C:/Azazael/azazael - a swarm of 72 worker cursors that read a scope of files, report what they found, and land a layer of a site, all-or-nothing. Commits d75f5df6, 7902bbe8, 4b072b40.",
+   "title": "cursor_swarm v1: 72 WORKER cursors build a site (not the arena)"
+  },
+  {
+   "cause": "The format is magic b'mozLz40\\0' + a 4-byte little-endian UNCOMPRESSED SIZE + a raw LZ4 block. Python's lz4.block.decompress needs that exact size, so read it from the header first - skipping the 4 bytes makes the decompress fail with 'corrupt input'. A hand-written LZ4 decoder also fails on this format because the size prefix shifts the block. The session store holds one window's tabs and each tab's entry list (the LAST entry is the current page); moz_historyvisits' visit_date is what tells you which of two candidate videos was most recent.",
+   "date": "2026-11-16",
+   "id": "engram-2256",
+   "kind": "engram:discovery",
+   "line": 2256,
+   "rationale": "What: The URL of the page open in Firefox is recoverable from %APPDATA%/Mozilla/Firefox/Profiles/<profile>/sessionstore-backups/recovery.jsonlz4 without any remote debugging. Why: The task said 'retrieve the tiktok video open in firefox browser' - no URL was given. Where: recovery.jsonlz4, profile fzrg7and.default-release on this host. places.sqlite (moz_places / moz_historyvisits) is the fallback and gives the visit ORDER, which the session store does not. Learned: The format is magic b'mozLz40\\0' + a 4-byte little-endian UNCOMPRESSED SIZE + a raw LZ4 block. Python's lz4.block.decompress needs that exact size, so read it from the header first - skipping the 4 bytes makes the decompress fai…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "The URL of the page open in Firefox is recoverable from %APPDATA%/Mozilla/Firefox/Profiles/<profile>/sessionstore-backups/recovery.jsonlz4 without any remote debugging.",
+   "title": "Firefox open-tab URL from recovery.jsonlz4 (mozLz40 format)"
+  },
+  {
+   "cause": "The diagnostic that settles it is `gh api repos/<o>/<r>/commits/main/check-runs --jq '.check_runs[].name'` - if the required context is absent from that list, no amount of green CI unblocks main. The fix is to make the workflow emit that context (job `name: ci`), never to relax the protection. A green CI run and an unblockable main can coexist with no error raised anywhere.",
+   "date": "2026-11-16",
+   "id": "engram-2258",
+   "kind": "engram:discovery",
+   "line": 2258,
+   "rationale": "What: A branch-protection required status-check context that no workflow emits leaves main permanently blocked - and GitHub matches the required context against the CHECK-RUN NAME (the job's `name:` if set, otherwise the job id), not the workflow file name. Why: Measured 2026-11-15 across six myzticalbabe repos (cradle, krampus, jaeger, madi, grantforge, azazael). All six require the context `ci`. Five have `.github/workflows/ci.yml` with `name: CI` at the top and a job id `test`; azazael has no ci.yml at all. The observed check-run names on main were `test` (x3 for azazael), `compliance`, `Build ...`, etc. - never `ci`. Where: the `ci` context is what branch protection requires (`gh api re…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "A branch-protection required status-check context that no workflow emits leaves main permanently blocked - and GitHub matches the required context against the CHECK-RUN NAME (the job's `name:` if set, otherwise the job id), not the workflow file name.",
+   "title": "Required status-check context vs emitted check-run name (§8.2 blocker)"
+  },
+  {
+   "cause": "`_git` needed a bound (`GIT_TIMEOUT_S = 120`, timeout raises `ProofError`) because every caller reads a non-zero status as a refusal; a hang must refuse rather than wait. Also: the four female-needs quotes that a column-reassembly checker called absent were verbatim all along -- `pdftotext -layout` prints two-column pages side by side, so the instrument, not the source, was broken. Proof: `mcp_startup_gate.py --fix` -> \"gate: PASS=11 in 6.5s\" exit 0; `graphify_freshness.py --check` -> \"FRESH: receipt:\" exit 0; `check_quotes3.py` -> \"STRICT=24 APPARATUS=2 ABSENT=0\" with a mutation control (68%->67%) -> ABSENT exit 1; pytest -> \"40 passed\".",
+   "date": "2026-11-16",
+   "id": "engram-2259",
+   "kind": "engram:decision",
+   "line": 2259,
+   "rationale": "What: `codegraph-staleness` in `tools/mcp_startup_gate.py` accepts an evidence receipt from the new `tools/graphify_freshness.py --stamp`, which runs `update` and refuses unless it reports \"No code-graph topology changes detected\", the store sha256 and `built_at_commit` are unchanged, and HEAD has not moved. The gate accepts it only when receipt head/build/hash match the live store and judges it via the tool's own `receipt_verdict`. Why: a `--depth 1` commit touching only data files under `src/` moved HEAD off the graph's build commit with no extraction able to move it back, so the check failed on a tree that was in fact current. Relaxing the check was the bypass; recording a re-extraction…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "`codegraph-staleness` in `tools/mcp_startup_gate.py` accepts an evidence receipt from the new `tools/graphify_freshness.py --stamp`, which runs `update` and refuses unless it reports \"No code-graph topology changes detected\", the store sha256 and `built_at_commit` are unchanged, and HEAD has not moved. The gate accepts it only when receipt head/build/hash match the live store and judges it via the tool's own `receipt_verdict`.",
+   "title": "codegraph-staleness now accepts a freshness receipt, not a weakening"
+  },
+  {
+   "cause": "The gate checks shape and honesty-against-the-quote (kind in a closed vocab, every `removed` token genuinely absent from the quote, non-empty note) and explicitly does NOT prove contiguity — the corpus carries no source text, so a contiguity check in the validator would report a match it never performed. Consequence for the self-test: the mutator \"delete the declaration\" is BLIND by construction (no shape check can see an absent declaration), so it was replaced with \"declare a removal still present in the quote\" (caught, 7/7) and the deletion regression is pinned by a test instead. Verify a proposed mutator against the gate's reach before adding it. Evidence: `validate_female_needs_corpus.p…",
+   "date": "2026-11-16",
+   "id": "engram-2260",
+   "kind": "engram:decision",
+   "line": 2260,
+   "rationale": "What: Added a `corroboration_apparatus` gate to `tools/validate_female_needs_corpus.py` (mirrored to `Project_Nurse_Ratchet/tools/`), a 7th self-test mutator, and 4 negative controls + 2 regression pins in `tests/test_female_needs_corpus.py` (mirrored). Committed 157c46f7, 6 files, 290 insertions. Why: E-HOUSE-01's corroboration quote (S-ASPE-HOUSING) is contiguous with the PDF text only after two printed superscript callouts are removed, and that removal lived in a prose note no gate read; E-VOICE-02's citation needed the source's own comma rather than an elision marker. Both were the last two APPARATUS cases from the quote sweep. Where: src/PSYCHE/data/female_needs_hyperedges.json + Proje…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Added a `corroboration_apparatus` gate to `tools/validate_female_needs_corpus.py` (mirrored to `Project_Nurse_Ratchet/tools/`), a 7th self-test mutator, and 4 negative controls + 2 regression pins in `tests/test_female_needs_corpus.py` (mirrored). Committed 157c46f7, 6 files, 290 insertions.",
+   "title": "Gated the corpus quote apparatus declaration (157c46f7)"
+  },
+  {
+   "cause": "(1) `judge()` initially returned STRICT on a verbatim match before reading the declaration, so an unprovable declaration scored as proven — declarations are now always validated. (2) Blanket NFKC must never be used on evidence: it folds superscript digits (U+00B2/B3/B9/2070-2079) to ASCII and erases the callout apparatus the corpus declares; an explicit ligature map plus explicit soft-hyphen strip was used instead. (3) Two named readings (verbatim, dehyphenated) beat one destructive dehyphenation pass because line-break hyphen ownership is undecidable. (4) A negative control asserting \"77\" was absent failed because the document contains 77 — a control must test the claim it makes. (5) `logs…",
+   "date": "2026-11-16",
+   "id": "engram-2261",
+   "kind": "engram:bugfix",
+   "line": 2261,
+   "rationale": "What: Added `tools/check_corpus_quotes.py` + `tests/test_check_corpus_quotes.py` (commit cd908411, 3 files, +777) and acked one live AP-5 emission into `logs/transcript_ap5_ack.json`. Why: The corpus declared a quote apparatus in prose (`apparatus.kind` / `apparatus.removed`) and no gate read it, so a block that only matched after undeclared deletions was indistinguishable from a verbatim one. Where: tools/check_corpus_quotes.py, tests/test_check_corpus_quotes.py, logs/transcript_ap5_ack.json. Learned: (1) `judge()` initially returned STRICT on a verbatim match before reading the declaration, so an unprovable declaration scored as proven — declarations are now always validated. (2) Blanket…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Added `tools/check_corpus_quotes.py` + `tests/test_check_corpus_quotes.py` (commit cd908411, 3 files, +777) and acked one live AP-5 emission into `logs/transcript_ap5_ack.json`.",
+   "title": "Landed a corpus quote checker that validates declarations before matching"
+  },
+  {
+   "cause": "A pin on a derived roster is a mirror of another file's inventory, so it fails on growth and the message names the count rather than the cause. Move the pin with the roster and record which commit moved it; never widen to a range, which would stop noticing a deleted gate. Verified after the edit: pytest on this file plus tests/test_preflight_gate_wiring.py = 58 passed, 1 failed in 1.81s, the failure being the pre-existing soulforge_gate.py wiring gap (tracked at eefc4319, absent from KNOWN_UNWIRED, not touched by this commit). Freshness re-stamped at c73ff164 (exit 0, no topology change) and the startup gate returned PASS=11, exit 0.",
+   "date": "2026-11-16",
+   "id": "engram-2262",
+   "kind": "engram:bugfix",
+   "line": 2262,
+   "rationale": "What: Moved tests/test_registered_gates_can_fail.py's roster pin from 36 to 37 and dated the docstring, committed as c73ff164 (1 file, +4/-3). Why: 425b2252 added a Check 11 stanza running tools/golden_arrow.py --staged, taking the hook's distinct-script roster from 36 to 37, so the pin tripped with `assert 37 == 36`. Where: tests/test_registered_gates_can_fail.py (test_the_roster_is_not_empty, module docstring); roster derived from pf.GATES via registered_scripts(). Learned: A pin on a derived roster is a mirror of another file's inventory, so it fails on growth and the message names the count rather than the cause. Move the pin with the roster and record which commit moved it; never widen…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Moved tests/test_registered_gates_can_fail.py's roster pin from 36 to 37 and dated the docstring, committed as c73ff164 (1 file, +4/-3).",
+   "title": "Roster count pin moved 36->37 after golden_arrow joined the hook"
+  },
+  {
+   "cause": "A two-interpreter verdict is unperformable on this host — CORE.python_env.gil_python() is None because C:/Azazael/.venvs/py315/Scripts/python.exe does not exist and C:/Azazael/.venvs/py316/Scripts/python.exe is a broken shim (no cpython-316/PCbuild/amd64). resolve_interpreters() yields one role. Proven paths: --primary-only out exit 0 \"PASS: primary is within its recorded envelope\"; a missing baseline exits 2 \"FAIL: - missing baseline\". Two of the nine golden_arrow defects are foreign turf and were left alone: tests/test_nurse_ratchet_release_gate.py::test_the_real_project_passes (rc=1) and tests/test_preflight_all.py::TestRunControls::test_a_passing_control_artifact_is_demonstrated (passes…",
+   "date": "2026-11-16",
+   "id": "engram-2263",
+   "kind": "engram:decision",
+   "line": 2263,
+   "rationale": "What: Closed the three open followups and committed four slices at HEAD afbed0da on branch professional-public-standards-rule-0z-r: (1) a589881a — scripts/ci_two_interpreter_gate.py no longer prints \"PASS: both interpreters are within their recorded envelopes\" on a single-role run; it names the roles present in `results` and prints \"ONE ROLE ONLY - not a two-interpreter verdict\"; (2) 4284031a — logs/golden_arrow_baseline.json cleared to known:{} (forced add, logs/ is gitignored); (3) 286e67ed — 5 files repairing the lane estate (shlex.split for PYTEST_ADDOPTS, `ps -eo comm=,args=` fallback where tasklist.exe is absent, LaneMessageBoard.post_task paging with exit 3 on failure, --ledger > --l…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Closed the three open followups and committed four slices at HEAD afbed0da on branch professional-public-standards-rule-0z-r: (1) a589881a — scripts/ci_two_interpreter_gate.py no longer prints \"PASS: both interpreters are within their recorded envelopes\" on a single-role run; it names the roles present in `results` and prints \"ONE ROLE ONLY - not a two-interpreter verdict\"; (2) 4284031a — logs/golden_arrow_baseline.json cleared to known:{} (forced add, logs/ is gitignored); (3) 286e67ed — 5 files repairing the lane estate (shlex.split for PYTEST_ADDOPTS, `ps -eo comm=,args=` fallback where tasklist.exe is absent, LaneMessageBoard.post_task paging with exit 3 on failure, --ledger > --log > d…",
+   "title": "Two-interpreter gate made honest; golden_arrow baseline cleared; type-check debt recorded"
+  },
+  {
+   "cause": "(1) The staged scanner flags only a constant return in a single-statement except — rel_in_tree was restructured to assign-then-return rather than rebaselined. (2) It reads the INDEX, so re-add before re-running. (3) A recorded head that resolves but is 12 commits old is a NOTE; only an unresolvable head or a ladder/ledger disagreement is GAPS, and both heads must be canonicalised to short shas or a full/short pair false-fails.",
+   "date": "2026-11-16",
+   "id": "engram-2264",
+   "kind": "engram:decision",
+   "line": 2264,
+   "rationale": "What: tools/stem_pins.py now reports PARTIAL (exit 0) when rungs carry verbatim pins but not a full instrument, prints which rungs are partial, checks that the ladder/ledger recorded head can be confirmed from the tree, and proves itself with --prove. tools/arc_check.py folds PARTIAL to the container's INCOMPLETE; tools/stem_ladder.py's exit-contract docstring and ARC/README.md's state block follow. Why: READY overstated a wing whose coverage is declared incomplete and GAPS invented a defect. Two claims the tool made had no evidence behind them: that the pins were verified against this tree, and that the verifier fires. Where: tools/stem_pins.py (check_head, coverage_gaps, verdict_for, exit…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "tools/stem_pins.py now reports PARTIAL (exit 0) when rungs carry verbatim pins but not a full instrument, prints which rungs are partial, checks that the ladder/ledger recorded head can be confirmed from the tree, and proves itself with --prove. tools/arc_check.py folds PARTIAL to the container's INCOMPLETE; tools/stem_ladder.py's exit-contract docstring and ARC/README.md's state block follow.",
+   "title": "STEM wing gets PARTIAL verdict, head check, self-controls (34017ed6)"
+  },
+  {
+   "cause": "A -Phase Before baseline goes stale the moment the host reboots for any unrelated reason, and reusing it converts an unrelated boot into a fabricated MELLI cycle. Re-take Before immediately before the power-cycle. Also: my first disk reading said \"G: not mounted\" because `Win32_LogicalDisk -eq 3` filters to fixed drives only; G: is a non-fixed type and is mounted with 38.4 GB free — retracted in the handoff. Boot cycle remains 0 of 2 and the freeze holds: no grub-install / update-grub / efibootmgr -o from Linux until the entry survives two reboots.",
+   "date": "2026-11-16",
+   "id": "engram-2265",
+   "kind": "engram:discovery",
+   "line": 2265,
+   "rationale": "What: Completed housekeeping + reboot pre-flight for the MELLI / Project Sarah session. Why: Reboot into MELLI is the gate on building Project Sarah; pre-flight had to prove the stack, the disk, the model set and the boot-cycle tooling were in a countable state first. Where: C:/Azazael/azazael (docs/HANDOFF_2026-11-16.md, commit bf7e2703); C:/Users/clint/MELLI_OS/build/{melli_boot_cycle.ps1,stage_melli_fixer.ps1}; C:/Users/clint/MELLI_OS_SPEC.md §5b-§5d.2. Trusted readings (each with its command): - `mcp_startup_gate.py` => `gate: PASS=11 in 6.1s` RC=0. - codegraph-staleness cleared by rebuild-then-stamp: `graphify_bin.sh update src` => `No code-graph topology changes detected; outputs left…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Completed housekeeping + reboot pre-flight for the MELLI / Project Sarah session.",
+   "title": "MELLI pre-flight 2026-11-16: gate green, three reboot blockers"
+  },
+  {
+   "cause": "(1) The same feature helps one sub-type and harms another — a visual countdown timer reduces ADHD inattention (rho=0.448, eta2=0.15) but raises autistic anxiety; a \"how do you feel?\" prompt bridges alexithymia and interrogates PDA. So the build cannot be a fixed experience with an accessibility checkbox; it needs M1, an 8-axis Cognitive Profile Vector (processing_speed, wm_span, sustained_attention, sensory_gain, interoceptive_accuracy, time_discrimination, initiation_threshold, recovery_latency) that every other module reads. (2) PDA evidence is weak and contested (Kildahl 2021; JADD 2026 calls the construct circular), so autonomy-preserving interaction (invitations, choices, no imperative…",
+   "date": "2026-11-16",
+   "id": "engram-2266",
+   "kind": "engram:architecture",
+   "line": 2266,
+   "rationale": "What: Wrote and committed docs/PROJECT_SARAH_IMMERSION_UPGRADES_2026-11-16.md (325 lines, commit 2b5ef4c1) — a sub-type to deficit to adaptation matrix for every known neurodivergent sub-type, fifteen independently acceptable upgrade modules ordered against the MellifluousML stack, hyper-edge immersion levers with hard caps, and a ten-item do-not-build list. Why: Kilo is writing the build brief for the NeuroDivergent Affirmation Engine and the design premise was unstated — whether \"immersion\" means more stimulation or less. Deep web research over ~13 queries found the measured direction is less: the multisensory XR comfort study (arXiv 2610.23833, 20 autistic adults) rates click-triggered s…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Wrote and committed docs/PROJECT_SARAH_IMMERSION_UPGRADES_2026-11-16.md (325 lines, commit 2b5ef4c1) — a sub-type to deficit to adaptation matrix for every known neurodivergent sub-type, fifteen independently acceptable upgrade modules ordered against the MellifluousML stack, hyper-edge immersion levers with hard caps, and a ten-item do-not-build list.",
+   "title": "Project Sarah immersion upgrades graded by evidence"
+  },
+  {
+   "cause": "",
+   "date": "2026-11-16",
+   "id": "engram-2267",
+   "kind": "engram:decision",
+   "line": 2267,
+   "rationale": "LANE 1 — SUBSTRATE (kilo) Sole execution authority for lane 1 of Project Sarah at HEAD 2b5ef4c1 (2026-11-16). All other Sarah briefs are foreign to this lane. One lane, one brief, one worktree. Expiry 2026-11-20: after that, re-derive HEAD and the module list before starting. Parent design: docs/PROJECT_SARAH_IMMERSION_UPGRADES_2026-11-16.md (commit 2b5ef4c1) — that document is the design, this brief is the execution order. MISSION: build the runtime substrate every other lane reads — the 8-axis profile vector, the predictability packet, exit-anywhere, working-memory offload, and the initiation ladder — and publish the profile interface as a frozen contract at the end of step 1 so lanes 2 a…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "LANE 1 — SUBSTRATE (kilo) Sole execution authority for lane 1 of Project Sarah at HEAD 2b5ef4c1 (2026-11-16). All other Sarah briefs are foreign to this lane. One lane, one brief, one worktree. Expiry 2026-11-20: after that, re-derive HEAD and the module list before starting. Parent design: docs/PROJECT_SARAH_IMMERSION_UPGRADES_2026-11-16.md (commit 2b5ef4c1) — that document is the design, this brief is the execution order. MISSION: build the runtime substrate every other lane reads — the 8-axis profile vector, the predictability packet, exit-anywhere, working-memory offload, and the initiation ladder — and publish the profile interface as a frozen contract at the end of step 1 so lanes 2 a…",
+   "title": "#2267 Project Sarah lane 1 brief — substrate (profile, predictability, exit, offload, initiation)"
+  },
+  {
+   "cause": "",
+   "date": "2026-11-16",
+   "id": "engram-2268",
+   "kind": "engram:decision",
+   "line": 2268,
+   "rationale": "LANE 2 — SENSORY SUBSTRATE (freebuff) Sole execution authority for lane 2 of Project Sarah at HEAD 2b5ef4c1 (2026-11-16). All other Sarah briefs are foreign to this lane. One lane, one brief, one worktree. Expiry 2026-11-20. Parent design: docs/PROJECT_SARAH_IMMERSION_UPGRADES_2026-11-16.md (commit 2b5ef4c1). MISSION: build the sensory substrate that makes immersion tolerable rather than maximal — adaptive pacing, one master intensity contract, gradual transitions, self-paced time, and cross-modal redundancy where a channel can be OFF. This lane implements the measured finding that the lowest-rated XR condition was click-triggered spatial audio (M=2.97/5) and the highest was gradual multi-m…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "LANE 2 — SENSORY SUBSTRATE (freebuff) Sole execution authority for lane 2 of Project Sarah at HEAD 2b5ef4c1 (2026-11-16). All other Sarah briefs are foreign to this lane. One lane, one brief, one worktree. Expiry 2026-11-20. Parent design: docs/PROJECT_SARAH_IMMERSION_UPGRADES_2026-11-16.md (commit 2b5ef4c1). MISSION: build the sensory substrate that makes immersion tolerable rather than maximal — adaptive pacing, one master intensity contract, gradual transitions, self-paced time, and cross-modal redundancy where a channel can be OFF. This lane implements the measured finding that the lowest-rated XR condition was click-triggered spatial audio (M=2.97/5) and the highest was gradual multi-m…",
+   "title": "#2268 Project Sarah lane 2 brief — sensory substrate (pacing, mixer, transitions, timer, redundancy)"
+  },
+  {
+   "cause": "",
+   "date": "2026-11-16",
+   "id": "engram-2269",
+   "kind": "engram:decision",
+   "line": 2269,
+   "rationale": "LANE 3 — AFFECT AND THE SARAH CORE (opencode) Sole execution authority for lane 3 of Project Sarah at HEAD 2b5ef4c1 (2026-11-16). All other Sarah briefs are foreign to this lane. One lane, one brief, one worktree. Expiry 2026-11-20. Parent design: docs/PROJECT_SARAH_IMMERSION_UPGRADES_2026-11-16.md (commit 2b5ef4c1). MISSION: build the part that is actually Project Sarah — the interoception bridge, time scaffolding, masking-load meter, the anti-dependency companion contract, and the affirmation engine — under the two hardest measured constraints in the evidence base: self-affirmation is g=.32 and BACKFIRES for low self-esteem, and companion-style AI use is associated with LOWER well-being (…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "LANE 3 — AFFECT AND THE SARAH CORE (opencode) Sole execution authority for lane 3 of Project Sarah at HEAD 2b5ef4c1 (2026-11-16). All other Sarah briefs are foreign to this lane. One lane, one brief, one worktree. Expiry 2026-11-20. Parent design: docs/PROJECT_SARAH_IMMERSION_UPGRADES_2026-11-16.md (commit 2b5ef4c1). MISSION: build the part that is actually Project Sarah — the interoception bridge, time scaffolding, masking-load meter, the anti-dependency companion contract, and the affirmation engine — under the two hardest measured constraints in the evidence base: self-affirmation is g=.32 and BACKFIRES for low self-esteem, and companion-style AI use is associated with LOWER well-being (…",
+   "title": "#2269 Project Sarah lane 3 brief — affect core (interoception, time, load, companion contract, affirmation)"
+  },
+  {
+   "cause": "execnet is a hard dependency of xdist (the worker transport), not optional — blocking `execnet` imports makes `xdist.dsession` fail with ModuleNotFoundError, and pip pulls it automatically. Proof that matters is `[gw0]`/`[gw1]` interleaved over two files (6 passed, RC=0) plus `pytest tests -q --co -n 2` → 7719 collected, RC=0, 10.16 s; `-n auto` resolved 16 workers, RC=0. A 2-test file costs 0.32 s serial vs 2.79 s under `-n auto`, because each free-threaded worker reloads interpreter and conftest — parallel pays only on suites big enough to amortise startup. `-n` deliberately stays OUT of committed addopts: bare `python` on PATH is 3.14.7 without xdist and parses pytest.ini, so a committed…",
+   "date": "2026-11-16",
+   "id": "engram-2270",
+   "kind": "engram:config",
+   "line": 2270,
+   "rationale": "What: Installed pytest-xdist 3.8.0 + execnet 2.1.2 into py316t (3.16.0a1, gil False) and updated the four documents that recorded xdist as absent there. Commit c6a1c341, 4 files, 51 insertions, 9 deletions, commit gate VERDICT GO. Why: Every `-n auto` on production died at argument parsing before collection, so a parallel command reported nothing at all — a silent pass. Free-threading was never the blocker: xdist and execnet are pure Python wheels and had simply never been installed in that venv. Where: C:/Azazael/.venvs/py316t (site-packages), azazael/pytest.ini (dated addendum), docs/SARAH_BRIEF_LANE_1_SUBSTRATE_2026-11-16.md, docs/SARAH_BRIEF_LANE_2_SENSORY_2026-11-16.md, docs/SARAH_BRIE…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Installed pytest-xdist 3.8.0 + execnet 2.1.2 into py316t (3.16.0a1, gil False) and updated the four documents that recorded xdist as absent there. Commit c6a1c341, 4 files, 51 insertions, 9 deletions, commit gate VERDICT GO.",
+   "title": "xdist installed on py316t; -n stays opt-in"
+  },
+  {
+   "cause": "(1) py316t needs NO PYTHONPATH: `$PY -c \"import CORE\"` resolves to src/CORE/__init__.py — a recalled \"no editable pth\" claim did not reproduce and was not written into the doc. (2) `SARAH` is a free module name on py316t (find_spec is None), so the layout can use it directly. (3) Engram #1498 records the FULL suite stack-overflowing at -n 8/-n 16, so the doc limits -n auto to the small Sarah group and says a full-suite parallel crash is not a Sarah defect. (4) Lane 2's brief allowlists no timer/redundancy test file, so B6 acceptance is inline assertions rather than a green test for a different module.",
+   "date": "2026-11-16",
+   "id": "engram-2271",
+   "kind": "engram:architecture",
+   "line": 2271,
+   "rationale": "What: Wrote `docs/SARAH_BUILD_INSTRUCTIONS_2026-11-16.md` (357 lines, commit 989b260a + caveat 79bb4095): the ordered build sequence B0 skeleton → B8 headless run, each step with owner lane, files, exported contract, negative cases, and the exact command that decides it. Why: Three lane briefs (#2267/#2268/#2269) existed with no sequence to execute them, and Kilo's build brief is still absent from disk (grep over MELLI_OS/, MELLI_OS_SPEC.md, BRICK_MELLIFLUOUSML_AIO.md, azazael/docs/ returns only HANDOFF_2026-11-16.md). The user asked for instructions with 316t pinned for building. Where: docs/SARAH_BUILD_INSTRUCTIONS_2026-11-16.md; src/SARAH/ is the tree it creates (not yet created); tests/…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Wrote `docs/SARAH_BUILD_INSTRUCTIONS_2026-11-16.md` (357 lines, commit 989b260a + caveat 79bb4095): the ordered build sequence B0 skeleton → B8 headless run, each step with owner lane, files, exported contract, negative cases, and the exact command that decides it.",
+   "title": "Project Sarah build instructions pinned to py316t"
+  },
+  {
+   "cause": "A commit's own message authorises that commit only; neighbours are still judged. Clean merges are skipped AND counted; an evil merge (`--cc --raw`) contributes `(-1,-1,path)` so it cannot pass silently. Exempting `ARC/esquire/pins.json` by name was only legitimate once `tools/arc_ledger.py` existed to regenerate it — a negative control (entry removed → `problems=1`, naming the 206-line finding) proves the exemption suppresses exactly one finding. MERGES: `f59c31c3` takes 116 s to read (31,426 rows) against the gate's 60 s bound, so `--base origin/main` (1,909 commits) is refused for a reason indistinguishable from dirt — that is gap G5b, and it is why the DoD example is `--base '@{upstream}…",
+   "date": "2026-11-17",
+   "id": "engram-2272",
+   "kind": "engram:bugfix",
+   "line": 2272,
+   "rationale": "What: `scripts/commit_gate.py` `cmd_hook --base X` now judges each commit in `X..HEAD` on its own changeset instead of `git diff X HEAD` (the range union). Added `commits_in_range`, `_numstat_rows`, `commit_numstat`, `commit_statuses`, `merge_extra_rows`, `_subject`, `commit_violations`; removed `range_numstat`/`range_statuses` (grep-verified no external callers). `single_commit_bulk_declaration()` kept as the 1-commit fast path. Why: ~30 focused commits read as one 1,215-file changeset against caps that are per-commit numbers, so the branch could not be pushed without `ALLOW_BULK_COMMIT=1` — an override for work that had already been split correctly. The defect was the gate's denominator,…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "`scripts/commit_gate.py` `cmd_hook --base X` now judges each commit in `X..HEAD` on its own changeset instead of `git diff X HEAD` (the range union). Added `commits_in_range`, `_numstat_rows`, `commit_numstat`, `commit_statuses`, `merge_extra_rows`, `_subject`, `commit_violations`; removed `range_numstat`/`range_statuses` (grep-verified no external callers). `single_commit_bulk_declaration()` kept as the 1-commit fast path.",
+   "title": "Commit-gate changeset-focus blocker resolved: per-commit judging"
+  },
+  {
+   "cause": "Two commits: `96fe0924` (5 files, 1011 insertions) and `c0809724` (3 files, 115 insertions). Leg proven live: `ok render_ratchet 8.32s 5 of 5 clips match the baseline | 5 of 5 recorded clip(s) present on this host`. Deep-dive leg tests 31 passed. Gate closed `PASS=11`. - The 3-hour render was 99.9% idle GPU compositing by CDP profile — SwiftShader cost 35539 ms/frame vs 1128 ms/frame on Intel Arc D3D11 (31.5x), so the gate treats a software-raster renderer string as a finding. Staged to `.gpu.mp4`, promoted only after verify. - Retraction worth carrying: I nearly filed a defect against `tools/graphify_freshness.py --stamp` because it printed `BLIND` and appeared to exit 0. The 0 was `tail(1…",
+   "date": "2026-11-17",
+   "id": "engram-2274",
+   "kind": "engram:pattern",
+   "line": 2274,
+   "rationale": "What: Answered \"do we need other drivers/gates/contracts/ratchets\" by building ONE tool with four faces rather than four new drivers: `tools/render_gate.py` (`contract` / `pilot` / `verify` / `ratchet`), plus GPU launch args and a `--pilot` mode in `tools/capture_yggdrasil.js`, and 27 tests in `tests/test_render_gate.py`. Then registered the ratchet as a deep-dive forensic leg so a gate that nobody invokes cannot exist. Why: The tree already had drivers and ratchets; what it lacked was a render *contract* (what a valid clip is), a pilot/ETA gate (would this render take 3 hours?), clip verification, and a clip ratchet. HED-8 says extend the default, do not shadow it — so one tool, four faces…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Answered \"do we need other drivers/gates/contracts/ratchets\" by building ONE tool with four faces rather than four new drivers: `tools/render_gate.py` (`contract` / `pilot` / `verify` / `ratchet`), plus GPU launch args and a `--pilot` mode in `tools/capture_yggdrasil.js`, and 27 tests in `tests/test_render_gate.py`. Then registered the ratchet as a deep-dive forensic leg so a gate that nobody invokes cannot exist.",
+   "title": "Render gate + deep-dive ratchet leg landed; exit status must survive every pipe"
+  },
+  {
+   "cause": "(1) git check-ignore -v azazael/src/CORE/LaneMessageBoard.py printed `.git/info/exclude:12:/azazael/`, which proves the tools DO read .git/info/exclude — the earlier assumption that they do not was false. (2) After both fixes azazael//*.py went 342 -> 501. (3) Two limits remain and are client-side, not disk state: the walker stops at three path components (azazael/src/CORE/*.py and azazael/tools/*.py still return 0) and it snapshots the tree at session start (a freshly created directory never appears). Workarounds that work: code_search with cwd set to the deep directory, and read_files on any absolute path. glob's cwd only filters output; it never changes the root. (4) A src commit invalid…",
+   "date": "2026-11-17",
+   "id": "engram-2275",
+   "kind": "engram:bugfix",
+   "line": 2275,
+   "rationale": "What: Made the file tools see the whole azazael tree from a workspace rooted at C:/Users/clint. Created the junction C:/Users/clint/azazael -> C:\\Azazael\\azazael, removed the bare `azazael/` entry from the home .gitignore and anchored 66 generic-dir entries with a leading `/`, and removed `/azazael/` from .git/info/exclude. Why: glob and code_search returned zero files for any azazael path, which read as \"no such code\" rather than \"not walked\". Where: C:/Users/clint/.gitignore, C:/Users/clint/.git/info/exclude, C:/Users/clint/azazael (junction). Old stale copy renamed azazael_relic_20261116 and kept ignored. Learned: (1) git check-ignore -v azazael/src/CORE/LaneMessageBoard.py printed `.git…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Made the file tools see the whole azazael tree from a workspace rooted at C:/Users/clint. Created the junction C:/Users/clint/azazael -> C:\\Azazael\\azazael, removed the bare `azazael/` entry from the home .gitignore and anchored 66 generic-dir entries with a leading `/`, and removed `/azazael/` from .git/info/exclude.",
+   "title": "File-tool visibility repaired by junction + ignore anchoring; walker still caps at 3 components"
+  },
+  {
+   "cause": "A vocabulary change is not done until the assertion set, table keys and seed/merge normalisation all name the new spelling — a rename that leaves its own tests on the old names ships a suite that fails on the fix. `py316t -m pytest ...` → 48 passed, RC=0; `python -c \"from SARAH.profile import Profile; print(Profile.from_signals({}).explain('sensory_gain'))\"` → \"sensory_gain: not measured yet\", RC=0. `predict.py` and `exit.py` still do not exist, so B1's mandated prediction_need negative case remains untestable.",
+   "date": "2026-11-17",
+   "id": "engram-2276",
+   "kind": "engram:decision",
+   "line": 2276,
+   "rationale": "What: Reconciled src/SARAH/profile.py and src/SARAH/clinical/crosswalk.py onto B1's eight contract axis names. `AXES` is now the contract tuple in contract order (`sensory_gain, processing_speed, attention_span, interoception, masking_load, recovery_latency, initiation_cost, prediction_need`); `EXTENDED_AXES = (\"wm_span\", \"time_discrimination\")` carries the two axes the build genuinely needs (crosswalk seeds them from F81.0/F81.2/F83, M9/M10 consume them) so `len(AXES) == 8` stays true; `AXIS_ALIASES` maps `sustained_attention→attention_span`, `interoceptive_accuracy→interoception`, `initiation_threshold→initiation_cost` and is applied in `from_signals`/`from_dict`/`explain` and the crosswa…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Reconciled src/SARAH/profile.py and src/SARAH/clinical/crosswalk.py onto B1's eight contract axis names. `AXES` is now the contract tuple in contract order (`sensory_gain, processing_speed, attention_span, interoception, masking_load, recovery_latency, initiation_cost, prediction_need`); `EXTENDED_AXES = (\"wm_span\", \"time_discrimination\")` carries the two axes the build genuinely needs (crosswalk seeds them from F81.0/F81.2/F83, M9/M10 consume them) so `len(AXES) == 8` stays true; `AXIS_ALIASES` maps `sustained_attention→attention_span`, `interoceptive_accuracy→interoception`, `initiation_threshold→initiation_cost` and is applied in `from_signals`/`from_dict`/`explain` and the crosswalk's `…",
+   "title": "Sarah B1 vocabulary frozen on the contract names"
+  },
+  {
+   "cause": "First run failed `1 failed, 30 passed` — `0.3999999999999999` against a 400 ms floor, because Step held `at_s` as float seconds. Fix: `Step.at_ms: int`, offsets built in integer milliseconds (`step_ms = max(400, round(stagger*1000))`), test asserts the floor on `at_ms`. Rerun `31 passed in 0.47s`, RC=0. Freeze verdict stays with lane 1 (Board-51707) — files are built, not frozen.",
+   "date": "2026-11-17",
+   "id": "engram-2277",
+   "kind": "engram:decision",
+   "line": 2277,
+   "rationale": "What: Added `src/SARAH/predict.py` (M6: packet, announcement_beats, changes_per_announcement, stagger_s; RAMP_S=0.4, ANNOUNCEMENT_BEAT_S=2.0, STEP_S=1.5, MAX_BEATS=4, MAX_CHANGES_PER_ANNOUNCEMENT=3, simultaneous_changes pinned at 1) and `src/SARAH/exit.py` (M7: request, assert_unscored, reachable_in_one_action, re-exports profile's ExitPort/ExitTicket), plus `tests/test_sarah_predict.py` (31 tests). Committed as 274b0577 on professional-public-standards-rule-0z-r (3 files, +490). Why: `docs/SARAH_INTERFACE_2026-11-16.md` names both modules as missing and the B1 contract makes `predict.packet` the prerequisite for its mandated negative case. Where: src/SARAH/predict.py, src/SARAH/exit.py, te…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Added `src/SARAH/predict.py` (M6: packet, announcement_beats, changes_per_announcement, stagger_s; RAMP_S=0.4, ANNOUNCEMENT_BEAT_S=2.0, STEP_S=1.5, MAX_BEATS=4, MAX_CHANGES_PER_ANNOUNCEMENT=3, simultaneous_changes pinned at 1) and `src/SARAH/exit.py` (M7: request, assert_unscored, reachable_in_one_action, re-exports profile's ExitPort/ExitTicket), plus `tests/test_sarah_predict.py` (31 tests). Committed as 274b0577 on professional-public-standards-rule-0z-r (3 files, +490).",
+   "title": "SARAH M6 predictability packet + M7 exit surface built (274b0577)"
+  },
+  {
+   "cause": "My first reading called this a UNC hang; measurement falsified it. Three separate mistakes were in it: (1) \"did not finish in 240 s\" is not \"hangs\", (2) `kill -0 <pid>` from this bash shell does not see Windows PIDs (`tasklist //FI \"PID eq <pid>\"` does), and (3) killing the `timeout` wrapper leaves its python child running, so \"exited after ~10s\" was the wrapper, not the work. Budget the all-domain run at ~10 min whenever the dev census exists.",
+   "date": "2026-11-17",
+   "id": "engram-2278",
+   "kind": "engram:bugfix",
+   "line": 2278,
+   "rationale": "What: `domain_atlas_dev.json` read 0 trees because `dev_stack_census.json` was absent. Writing the census (761 KB: windows 803 / ubuntu 205 / kali 988 distributions) makes the all-domain run take ~9.6 minutes instead of ~10 seconds, and it completes: `tools/domain_trees.py` rc=0, manifest rewritten 01:12, `dev trees=29 modules=52943 lines=24726849 classes=122246`. Those numbers are installed third-party packages in three environments, not this repository. Why: `build_stacks` AST-counts every installed package's top-level dir, so the work scales with ~100k site-packages files. The `\\\\wsl.localhost` roots are NOT slow: a bounded os.walk of `//wsl.localhost/kali-linux/.../site-packages` read 6…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "`domain_atlas_dev.json` read 0 trees because `dev_stack_census.json` was absent. Writing the census (761 KB: windows 803 / ubuntu 205 / kali 988 distributions) makes the all-domain run take ~9.6 minutes instead of ~10 seconds, and it completes: `tools/domain_trees.py` rc=0, manifest rewritten 01:12, `dev trees=29 modules=52943 lines=24726849 classes=122246`. Those numbers are installed third-party packages in three environments, not this repository.",
+   "title": "dev domain atlas: needs its census and ~9.6 min, not a hang"
+  },
+  {
+   "cause": "Measured 2026-11-17 — azazael store built_at_commit 274b0577, 117,251 nodes / 161,760 links; EveUnleashed 3cd156c4 (its own HEAD), 4,328 nodes; 11 domain atlases / 108 subtrees / 53,546 modules generated 01:12:28; gate PASS=11 in 7.4s at HEAD 2fad8f80 with codegraph accepted because src/ is unchanged since the build (a docs-only commit does not invalidate the store; a src/ commit does). Two declared roots are genuinely absent and appear in the atlas `missing` list rather than being dropped: C:/Users/clint/RANI_LLM_evidence.json (eve_rani) and C:/Users/clint/gosp_parity (gosp). Also: the lane-queue canon block mandates `_board.py report <lane> <status> <detail>`, but the CLI has no `report`…",
+   "date": "2026-11-17",
+   "id": "engram-2279",
+   "kind": "engram:decision",
+   "line": 2279,
+   "rationale": "What: Committed the reboot handoff and proved every graph deliverable fresh before reboot. Why: The handoff still pinned 444f3dad as HEAD and repeated two readings measurement had falsified (`_board.py release` deleting the claim row; killing a `timeout` wrapper killing its python child). Where: azazael/docs/HANDOFF_2026-11-17.md (three commits: 2fad8f80 +54/-26, 03e845c2 +12/-3, 00101b49 +9/-3; final HEAD 00101b49, gate PASS=11 in 4.2s); azazael/src/graphify-out/graph.json; C:/Users/clint/yggdrasil_forest/{domain_atlas_*.json,forest_manifest.json}. Learned: Measured 2026-11-17 — azazael store built_at_commit 274b0577, 117,251 nodes / 161,760 links; EveUnleashed 3cd156c4 (its own HEAD), 4,3…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Committed the reboot handoff and proved every graph deliverable fresh before reboot.",
+   "title": "Handoff committed 2fad8f80; all graphs fresh at reboot"
+  },
+  {
+   "cause": "(1) The two patterns differ in kind: A rebuilds the vocabulary on canvas 2D and decodes nothing (LOOP=10.0 s, SCALE=3.6, hard-coded neon-cyan STOPS ramp, kaleido 4-fold mirror weight 0.55); B decodes the real footage then layers grading + Mirror (line 807), Kaleido via Fold (808/1456/1466), Orbit 90 deg per loop (825/1317-1332), Dwell (826/914/2241) and an a+b palette sweep over BlendPeriod 60 s. Full-res route for B is --source smoke_1080.mp4, not the 720p embedded asset. (2) Bash mangles a single-quoted JSON payload containing parentheses -- `syntax error near unexpected token '('`, zero records written; stage the payload to a file and pass \"$(cat file)\". (3) `_board.py done <id>` require…",
+   "date": "2026-11-17",
+   "id": "engram-2280",
+   "kind": "engram:decision",
+   "line": 2280,
+   "rationale": "What: Posted Board-51852 (task_id=lumina-render-both-patterns-2026-11-17) recording BOTH Lumina rebuilds as post-reboot render tasks, each to be interjected with shades of blue as periodic events and delivered as a screensaver. Read back through `python C:/Users/clint/_board.py tasks freebuff` -> 51852 present with both PATTERN A and PATTERN B in the detail (7401 chars). Why: User instruction was \"create a task for after reboot to rerender best lumina refresh interjected with shades of blue\", then \"RECORD BOTH PATTERNS AS TASK FOR RENDERING\". Both rebuilds turned out to be different patterns, not copies, so both are render targets. Where: C:/Users/clint/Desktop/SCREENSAVER_POWER_REFRESH.htm…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Posted Board-51852 (task_id=lumina-render-both-patterns-2026-11-17) recording BOTH Lumina rebuilds as post-reboot render tasks, each to be interjected with shades of blue as periodic events and delivered as a screensaver. Read back through `python C:/Users/clint/_board.py tasks freebuff` -> 51852 present with both PATTERN A and PATTERN B in the detail (7401 chars).",
+   "title": "Lumina: both patterns recorded as post-reboot render tasks (Board-51852)"
+  },
+  {
+   "cause": "The first test run failed 3 of 86, and one was a real source bug: Mixer.set_trim guarded the unmute with `if self._muted and modality not in self._muted`, so a trim written to a muted modality stayed 0.0 and the write was unobservable — precisely the failure its own docstring forbade. Fix: `if modality in self._muted`. The other two were my wrong expectations (KeyError's repr wrapper still quotes the modality inside the sentence; clamp_duration rounds 399.6 up to 400 so it is not clamped). Also: grep -P is dead in this Git Bash locale and my `|| echo none` turned the tool failure into a printed `none` — a false pass on the RULE 0H non-ASCII scan; re-ran it in Python and found 24 em-dashes (…",
+   "date": "2026-11-17",
+   "id": "engram-2281",
+   "kind": "engram:bugfix",
+   "line": 2281,
+   "rationale": "What: Built SARAH-B2 (M3 Sensory Gain Mixer + M4 Gradual-Transition Engine) as commit 9602ecfa on branch professional-public-standards-rule-0z-r — src/SARAH/sensory/{__init__,mixer,transitions}.py plus tests/test_sarah_mixer.py and tests/test_sarah_transitions.py. 86 passed in 0.64s on py316t; staged scanner 5 .py / 0 new anti-patterns. Why: freebuff lane (lane 2 of 4) was assigned B2 by opencode's Board-51924/51904 swarm plan; B1's profile.py contract was already landed green so B2 could start. Where: azazael/src/SARAH/sensory/mixer.py (M3), transitions.py (M4), sensory/__init__.py (real exports, Pacing/Timer/Redundancy deliberately absent); azazael/tests/test_sarah_mixer.py, test_sarah_tr…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Built SARAH-B2 (M3 Sensory Gain Mixer + M4 Gradual-Transition Engine) as commit 9602ecfa on branch professional-public-standards-rule-0z-r — src/SARAH/sensory/{__init__,mixer,transitions}.py plus tests/test_sarah_mixer.py and tests/test_sarah_transitions.py. 86 passed in 0.64s on py316t; staged scanner 5 .py / 0 new anti-patterns.",
+   "title": "SARAH-B2 M3+M4 landed; set_trim unmute bug found by its own tests"
+  },
+  {
+   "cause": "Verified no tracked file was moved by running `git ls-files | grep '^tmp_'` — 4 tracked `tmp_bcc_*` scripts live inside `azazael/`, none at the project root, so the move produced 0 deletions and the dirty count stayed at 44 (other lanes). A scratch-path deletion in this tree is never safe without that check. Post-cleanup gate: `PASS=11` exit 0, :8765 pid 7904 + :8766 pid 19412 LISTENING with logon origin, C: 105G / G: 24G free.",
+   "date": "2026-11-18",
+   "id": "engram-2283",
+   "kind": "engram:decision",
+   "line": 2283,
+   "rationale": "What: Closed the 2026-11-17 Kali-consolidation session's housekeeping. Copied `tmp_win_extract.py` -> `C:/Users/clint/ubuntu_root_salvage_2026-11-17/SALVAGE_EXTRACT.py` and `tmp_win_extract_report.json` -> `SALVAGE_REPORT.json` (sha256 1421ae97... identical on both extractor copies), repointed handoff §3a at the preserved path in commit `a2ef945b` (1 file, 4 insertions, 2 deletions, `IS_ANCESTOR=yes`), then moved 48 scratch files (37 in `C:/Users/clint`, 11 in `C:/Azazael`) into `C:/Users/clint/_scratch_2026-11-17_reboot` — 323 KB, residue 0. Why: The handoff cited a scratch path that cleanup was about to remove, so deleting first would have left the document pointing at nothing while destr…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Closed the 2026-11-17 Kali-consolidation session's housekeeping. Copied `tmp_win_extract.py` -> `C:/Users/clint/ubuntu_root_salvage_2026-11-17/SALVAGE_EXTRACT.py` and `tmp_win_extract_report.json` -> `SALVAGE_REPORT.json` (sha256 1421ae97... identical on both extractor copies), repointed handoff §3a at the preserved path in commit `a2ef945b` (1 file, 4 insertions, 2 deletions, `IS_ANCESTOR=yes`), then moved 48 scratch files (37 in `C:/Users/clint`, 11 in `C:/Azazael`) into `C:/Users/clint/_scratch_2026-11-17_reboot` — 323 KB, residue 0.",
+   "title": "Reboot housekeeping: salvage evidence preserved, 48 scratch files consolidated"
+  },
+  {
+   "cause": "`pip download --no-deps --only-binary=:all: jaxlib` under py316t: \"ERROR: Could not find a version that satisfies the requirement jaxlib (from versions: none)\" — WHEEL_EXIT=1. No cp316t wheel exists at all. - `pip install --dry-run jax` fails one step earlier: jax -> jaxlib -> ml-dtypes -> builds numpy 2.5.5 from source -> meson \"ERROR: Compiler cython cannot compile programs\" — DRYRUN_EXIT=1. - `tools/verify_python_stack.py mygrad jax jaxlib` -> `[ok] mygrad 2.5.0`, `[FAIL] jax`, `[FAIL] jaxlib`, PROBE_EXIT=1. So mygrad 2.5.0 is installed AND observable through the tree's own verifier (mygrad sits in the tool's OPTIONAL catalogue at line 68 — no edit was needed, only the tool's own `--all`…",
+   "date": "2026-11-18",
+   "id": "engram-2284",
+   "kind": "engram:discovery",
+   "line": 2284,
+   "rationale": "What: Proved, rather than assumed, that JAX cannot be installed on the production interpreter and that nothing in the tree needs it to import. Why: User asked \"USE JAX. HOW DOES IT HELP YOU?\" and then \"INSTALL MYGRAD FOR AUTODIFF. KILO BUILT MISSING FRAMEWORKS\" — mygrad was installed and verified; JAX needed a standing verdict so no future session retries it. Where: C:/Azazael/.venvs/py316t (3.16.0a1, Py_GIL_DISABLED=True), C:/Azazael/.venvs/py315t (3.15.0rc3), azazael/tools/verify_python_stack.py, azazael/src/ORCHESTRATION/ml_platforms/{run_qanalysis,run_qanalysis_multi,run_qanalysis_full,universal_converter,tensor_utils,jax_analysis}.py Learned: - `pip download --no-deps --only-binary=:al…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Proved, rather than assumed, that JAX cannot be installed on the production interpreter and that nothing in the tree needs it to import.",
+   "title": "JAX is uninstallable on py316t (no cp316t jaxlib wheel) — measured"
+  },
+  {
+   "cause": "The 2026-11-17 Desktop move dropped this script; the startup gate's `lane-context` check passed anyway because --fast only resolves config entries. Only the full `mcp_eight_verify.py` (spawn + initialize + tools/list) caught it. Result: 7 SERVING, pams OWNED, pmb_direct DISABLED by design, exit 0; gate PASS=11; supervisor GO.",
+   "date": "2026-11-18",
+   "id": "engram-2285",
+   "kind": "engram:bugfix",
+   "line": 2285,
+   "rationale": "What: Ran the 2026-11-17 session startup on the freebuff lane and repaired the one MCP server that was not connectable. Why: User asked to \"connect to all mcp. run startup\" — with barta-scrape failing MCP `initialize`, \"all\" was false. Where: C:/Azazael/desktop/barta-employment-gui/scripts/barta_scrape_mcp.py (restored from G:/Desktop_Archive/2026-11-17/barta-employment-gui/scripts/, sha256 47be4468...c6570e4282, cmp identical); C:/Users/clint/.config/kilo/kilo.jsonc, C:/Users/clint/.config/opencode/opencode.json, C:/Users/clint/.agents/mcp.json (barta path repointed Desktop -> C:/Azazael/desktop, backups *.bak-20261117-bartapath). Learned: The 2026-11-17 Desktop move dropped this script; t…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Ran the 2026-11-17 session startup on the freebuff lane and repaired the one MCP server that was not connectable.",
+   "title": "Startup + all-MCP connect: barta-scrape repaired (moved path)"
+  },
+  {
+   "cause": "(1) Verify ruff AFTER black, not before — black splits single-line imports into multiline and moves E402 noqa targets; nurse CI caught 3 misplaced noqas that a pre-black ruff 0.14 pass had cleared. Final gate order: ruff (CI-identical version + pinned select) -> black --check -> compileall. (2) noqa for E402 on split imports must sit on the 'from ... import (' statement line, not inside the parens; new ruff reports the violation at the statement start. (3) nurse test_certification_bar fails identically on pristine HEAD — pre-existing content issue, masked in CI, left for owner. (4) esquire-admissibility + flaming-sword reds are live Kilo-lane pushes (build job) — other turf, untouched.",
+   "date": "2026-11-18",
+   "id": "engram-2286",
+   "kind": "engram:decision",
+   "line": 2286,
+   "rationale": "What: Finished CI housekeeping on hydra-mlcluster, nurse-ratchet, persephone-sync — all three CI workflows now green on main (runs 44244601422, 44245242441, 44244608262). Deleted dead pages-deploy.yml (docs/ never existed) from hydra + persephone. Fixed genuine ruff findings (E402 path-bootstraps via noqa, F841 argparse vars, F601 dict dupes, F401 dead re-exports/unused imports), black-formatted all three trees. Committed in explicit-path slices (2+3+2 commits), pushed, confirmed each GitHub run. Why: Account-wide sweep showed these three as the last default-branch CI reds owned by this lane. Where: /tmp/hk/{hydra-mlcluster,nurse-ratchet,persephone-sync} clones (commits pushed to myzticalba…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Finished CI housekeeping on hydra-mlcluster, nurse-ratchet, persephone-sync — all three CI workflows now green on main (runs 44244601422, 44245242441, 44244608262). Deleted dead pages-deploy.yml (docs/ never existed) from hydra + persephone. Fixed genuine ruff findings (E402 path-bootstraps via noqa, F841 argparse vars, F601 dict dupes, F401 dead re-exports/unused imports), black-formatted all three trees. Committed in explicit-path slices (2+3+2 commits), pushed, confirmed each GitHub run.",
+   "title": "CI housekeeping complete: hydra, nurse, persephone green"
+  },
+  {
+   "cause": "(1) Zero open issues account-wide — every open-issues count is Dependabot PRs. (2) eliza is the only new default-branch CI red: same old-template disease (3.16 matrix, cache:pip, unpinned ruff now firing F401+BLE001) + Sphinx build with docs/ but no conf.py; community PR #3 already proposes a pages fix. (3) azazael-core gate red = 5 missing html lang= attributes, trivial fix. (4) pages-deploy reds split cleanly: 6 repos lack docs/ entirely (delete file), 4 have docs/ without conf.py (add config or delete). (5) Dependabot alerts API returns disabled account-wide; 30 unmerged bump PRs. (6) 4 repos lack LICENSE (codex-video-engine worst — ships product unlicensed); 5 stem repos + babel have no…",
+   "date": "2026-11-18",
+   "id": "engram-2287",
+   "kind": "engram:discovery",
+   "line": 2287,
+   "rationale": "What: Audited all 34 myzticalbabe repos (33 public + private llama-cpp) with gh API: latest workflow conclusions per repo, README/LICENSE presence, open-issue/PR census, failure-log causes for every default-branch red, docs/ presence check for pages-deploy failures. Why: User asked to audit all online repos for improvements after the CI housekeeping finished. Where: No files changed; evidence in /tmp/repos_full.txt, /tmp/audit_rows.json (ephemeral). Learned: (1) Zero open issues account-wide — every open-issues count is Dependabot PRs. (2) eliza is the only new default-branch CI red: same old-template disease (3.16 matrix, cache:pip, unpinned ruff now firing F401+BLE001) + Sphinx build with…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Audited all 34 myzticalbabe repos (33 public + private llama-cpp) with gh API: latest workflow conclusions per repo, README/LICENSE presence, open-issue/PR census, failure-log causes for every default-branch red, docs/ presence check for pages-deploy failures.",
+   "title": "Account-wide repo audit: findings and priority list"
+  },
+  {
+   "cause": "cve rebase kept wrong conflict side (verify file content not just commit message); legacy Pages build_type breaks deploy-pages (PUT workflow); /tmp vanishes/wrong-drive for Windows python (use relative paths); REVIEW_REQUIRED blocks PR merge — owner must approve, never self-approve.",
+   "date": "2026-11-18",
+   "id": "engram-2288",
+   "kind": "engram:decision",
+   "line": 2288,
+   "rationale": "What: Finished account-wide fix sweep: eliza PR #3 reopened/rebased/green-awaiting-owner-review; 11/11 Pages atlas workflows green; babel 4 SyntaxErrors fixed; renamed repos mapped; stem gate verified. Why: User asked to fix all issues then FIX PR. Where: 11 atlas pages-deploy.yml, babel tools/neurodiversity_affirming_engine/*.py, EveUnleashed+cve Pages build_type. Learned: cve rebase kept wrong conflict side (verify file content not just commit message); legacy Pages build_type breaks deploy-pages (PUT workflow); /tmp vanishes/wrong-drive for Windows python (use relative paths); REVIEW_REQUIRED blocks PR merge — owner must approve, never self-approve.",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Finished account-wide fix sweep: eliza PR #3 reopened/rebased/green-awaiting-owner-review; 11/11 Pages atlas workflows green; babel 4 SyntaxErrors fixed; renamed repos mapped; stem gate verified.",
+   "title": "Account audit closed: pages green, PR3 awaits owner review"
+  },
+  {
+   "cause": "berkspa.gov answers plain curl (no bypass needed); `release` CLI broken (use API); wsl needs MSYS_NO_PATHCONV=1 + /mnt/c paths; CivicPlus MDJ roster is JS-rendered (UJS sweep queued).",
+   "date": "2026-11-19",
+   "id": "engram-2295",
+   "kind": "engram:discovery",
+   "line": 2295,
+   "rationale": "What: Executed kilo-queue BCC tasks 001 (FATF) + 002 (StAR) from freebuff lane in openSUSE-Tumbleweed: 21-fetch berkspa.gov sweep verified 15 county officials/counsel (commissioners Leinbach/Rivera/Santoni, DA John T. Adams, prothonotary Del Collo, recorder Sheeler, wills Myers, treasurer Darcourt, controller Rudderow, coroner Stitzel, clerk Jones); sheriff + solicitor names and full MDJ/CP bench stay LEAD. Delivered STAR_SUBJECT_PROFILES.md (3 sample StAR packets), STAR_EVIDENCE_MATRIX.md (11 element-tied rows), exhibit_register.json (21 exhibits), FATF_PARALLEL_FININVEST_PLAN.md (parallel track + MLA/FIU template, unsent). Retired Board-56489/56491 done; ci_gates 3/4 PASS (drift SKIP on p…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Executed kilo-queue BCC tasks 001 (FATF) + 002 (StAR) from freebuff lane in openSUSE-Tumbleweed: 21-fetch berkspa.gov sweep verified 15 county officials/counsel (commissioners Leinbach/Rivera/Santoni, DA John T. Adams, prothonotary Del Collo, recorder Sheeler, wills Myers, treasurer Darcourt, controller Rudderow, coroner Stitzel, clerk Jones); sheriff + solicitor names and full MDJ/CP bench stay LEAD. Delivered STAR_SUBJECT_PROFILES.md (3 sample StAR packets), STAR_EVIDENCE_MATRIX.md (11 element-tied rows), exhibit_register.json (21 exhibits), FATF_PARALLEL_FININVEST_PLAN.md (parallel track + MLA/FIU template, unsent). Retired Board-56489/56491 done; ci_gates 3/4 PASS (drift SKIP on pre-exi…",
+   "title": "BCC StAR+FATF remediation landed from freebuff in openSUSE"
+  },
+  {
+   "cause": "Terminal grades — F2 ROBINSON-controls (verify PASS 0v/119 edges); all proffers 6pass/1gap with G1 principal-review the only gap (falsifying a human review was rejected); arena 6/6 unanimous; bare python here is 3.7.9 so board ops need py316t; pairs separator is 6 '='; kilo turf dubious-ownership must not be safe.directory'd; SKIP-counted-FAIL gates are by design. Residuals: Sheriff/named-Solicitor/full-MDJ-roster LEADs, G1 principal review, P7 operator-only.",
+   "date": "2026-11-19",
+   "id": "engram-2296",
+   "kind": "engram:decision",
+   "line": 2296,
+   "rationale": "What: Completed BCC tasks 003-006 with the standing rule (MCML-native methods + Esquire proffer per artifact + arena judging + surfacing loop). Retired Board-56492/56493/56494/56495 with command+result evidence; freebuff queue 0 open; announced Board-56574 to kilo (kilo commit needed to clear regen-drift SKIP). Why: User's standing order for all remaining machine-produced BCC artifacts. Where: /root/BCC-REINVESTIGATION (02_analysis/arena_bcc/, benford rerun, C-04 RESOLVED, websurface_status.json P2-P5 PARTIAL/P7 BOUND, 4 proffers); C:/Azazael/state (bcc_pairs.txt, arena_bcc/, bcc_*.py, bake_harvest_freebuff_2026-11-18.jsonl merged 5/0). Learned: Terminal grades — F2 ROBINSON-controls (verif…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Completed BCC tasks 003-006 with the standing rule (MCML-native methods + Esquire proffer per artifact + arena judging + surfacing loop). Retired Board-56492/56493/56494/56495 with command+result evidence; freebuff queue 0 open; announced Board-56574 to kilo (kilo commit needed to clear regen-drift SKIP).",
+   "title": "BCC 003-006 remediation complete with standing rule"
+  },
+  {
+   "cause": "Contact-block names need title-attachment checks; officeholder claims carry as-of windows; JS-driven portal nav defeats static headed dumps; byte thresholds don't validate content.",
+   "date": "2026-11-19",
+   "id": "engram-2297",
+   "kind": "engram:discovery",
+   "line": 2297,
+   "rationale": "What: Continuation past retired BCC 003-006: sweep-2 resolved Sheriff as Mandy P. Miller VERIFIED (EX-022, tier B, live county page 2026-11-19, supersedes EX-013 staff inference); Sadler verified solicitor 2016-2021 window only (EX-016 + Reading Eagle 2021-12-18), current holder LEAD; fixed profiles EX-019→EX-014 citation error; UJS click-through found no roster link in home DOM → operator-headed queued; 3 ASP.NET 404 stubs triaged, no edges; check_surfacing PASS. Why: User said continue; worked the LEAD queue (all-officials mandate) under the same standing rule. Where: /root/BCC-REINVESTIGATION (EX-022, profiles rows 12-13, websurface P2/P4); C:/Azazael/state (bcc_sweep2/triage2/sheriff/sa…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Continuation past retired BCC 003-006: sweep-2 resolved Sheriff as Mandy P. Miller VERIFIED (EX-022, tier B, live county page 2026-11-19, supersedes EX-013 staff inference); Sadler verified solicitor 2016-2021 window only (EX-016 + Reading Eagle 2021-12-18), current holder LEAD; fixed profiles EX-019→EX-014 citation error; UJS click-through found no roster link in home DOM → operator-headed queued; 3 ASP.NET 404 stubs triaged, no edges; check_surfacing PASS.",
+   "title": "BCC continuation: Sheriff Miller verified, Sadler windowed, UJS queued"
+  },
+  {
+   "cause": "(1) TOOLS_COUNT=0 without OAuth is credential-gating (hasScope/.some() — no token ⇒ defineTool returns false ⇒ 0 registered tools), NOT a fault. (2) send_email requires gmail.modify|gmail.compose|gmail.send — any one suffices (.some()); auth default gmail.modify,gmail.settings.basic registers it. (3) npm resolved a stale 1.5.0 first; pin 3.0.1 explicitly. (4) package engines >=24.18.1 but node is 24.14.0 — runs fine, standing caveat. (5) Windows spawn of bare .js fails EFTYPE — use `node` + absolute dist/index.js. (6) OAuth still pending: no ~/.gmail-mcp/ exists, so send_email will not appear until user does GCP project → Gmail API → OAuth client → gcp-oauth.keys.json → `npx -y @klodr/gmail…",
+   "date": "2026-11-19",
+   "id": "engram-2298",
+   "kind": "engram:config",
+   "line": 2298,
+   "rationale": "What: Installed @klodr/gmail-mcp@3.0.1 globally (npm) and added a `gmail` local MCP entry to C:/Users/clint/.config/opencode/opencode.json — command `node C:/Users/clint/AppData/Roaming/npm/node_modules/@klodr/gmail-mcp/dist/index.js`, enabled, timeout 120000. Backup at opencode.json.bak-gmail-20261119. Why: User requested a Gmail MCP server exposing an exact `send_email` tool in this lane. Where: ~/.config/opencode/opencode.json (mcp key, now 9 entries); global npm node_modules. Verified: mcp_startup_gate.py --fix → PASS=9 exit 0 (lane-context: opencode 9 entries); config-argv MCP handshake → INITIALIZE_OK server=gmail version=3.0.1 exit 0. Learned: (1) TOOLS_COUNT=0 without OAuth is crede…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Installed @klodr/gmail-mcp@3.0.1 globally (npm) and added a `gmail` local MCP entry to C:/Users/clint/.config/opencode/opencode.json — command `node C:/Users/clint/AppData/Roaming/npm/node_modules/@klodr/gmail-mcp/dist/index.js`, enabled, timeout 120000. Backup at opencode.json.bak-gmail-20261119.",
+   "title": "Installed @klodr/gmail-mcp 3.0.1 and wired gmail server into opencode.json"
+  },
+  {
+   "cause": "json.dump defaults destroy file byte-stability three ways: indent (proofed=2/working=1), ensure_ascii=True escapes literal UTF-8 (HEAD has literal chars), and Windows text-mode writes CRLF; fix = matching indent + ensure_ascii=False + restore lone pre-existing \\u2192 escape via chr(92). Working-graph \"10-edge gap\" was exactly the unsynced beam-2.0 batch (108-117); remaining 8 triple-mismatches are beam-1.0 relabel divergences (two are proofed downgrades) left for lane adjudication, not silent overwrite.",
+   "date": "2026-11-20",
+   "id": "engram-2299",
+   "kind": "engram:decision",
+   "line": 2299,
+   "rationale": "What: beam1X 2026-11-20 deltas landed and committed (0a7109b): proofed graph 118->128 edges (118-124 Quest OCR panels/sites, 125-127 Butler split), working graph synced 118->128 + KELLER self-loop fix, node parity TRUE, flock index recomputed; Furniture Soup federal vendor profile saved as context-only (no BCC nexus, no edge); DOS #3967553 and deed 2173/0380 blocked (bot walls), queued for post-restart scrapling pass Why: user asked for missed microcosm-to-macrocosm edge audit + continued fetches, then authorized the 2 known gaps, then housekeeping+handoff for client restart Where: BCC-REINVESTIGATION_SYNC/01_verified/network_edges_proofed.json, network_edges.json, edge_flocks.md, new_sourc…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "beam1X 2026-11-20 deltas landed and committed (0a7109b): proofed graph 118->128 edges (118-124 Quest OCR panels/sites, 125-127 Butler split), working graph synced 118->128 + KELLER self-loop fix, node parity TRUE, flock index recomputed; Furniture Soup federal vendor profile saved as context-only (no BCC nexus, no edge); DOS #3967553 and deed 2173/0380 blocked (bot walls), queued for post-restart scrapling pass",
+   "title": "beam1X graph deltas 118-127 landed, working synced, commit 0a7109b"
+  },
+  {
+   "cause": "Fresh-process krampus_status = exit 0 / healthy; live MCP server needs client restart to pick it up. Commit blocked by pre-existing [Prompt] hook defect (gui_act.py dead path, 13 defects) — no override used; foreign staged file left untouched. Do NOT kill/restart MCP children to refresh; do NOT hand-edit generated AO blocks to clear the hook.",
+   "date": "2026-11-21",
+   "id": "engram-2300",
+   "kind": "engram:learning",
+   "line": 2300,
+   "rationale": "What: Repaired KRAMPUS MISSING mellifluousml/lillith and rebuilt codegraph for current HEAD. Wrapper fix: tools/krampus_mcp.py inserts EveUnleashed/src at sys.path front (env-overridable). Graph: 115123 nodes / 157465 edges, graph_matches_head true. Why: 316t venv namespace collision — azazael editable's legacy eve_unleashed 1.1.0 shadowed EveUnleashed 3.16.0 (owner per KRAMPUS manifest); codegraph graph.json was built at 9edd43ad vs HEAD 2182d0709. Where: C:/Azazael/azazael/tools/krampus_mcp.py (worktree only, uncommitted); C:/Azazael/azazael/src/graphify-out/graph.json (gitignored, rebuilt in place). Learned: Fresh-process krampus_status = exit 0 / healthy; live MCP server needs client re…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Repaired KRAMPUS MISSING mellifluousml/lillith and rebuilt codegraph for current HEAD. Wrapper fix: tools/krampus_mcp.py inserts EveUnleashed/src at sys.path front (env-overridable). Graph: 115123 nodes / 157465 edges, graph_matches_head true.",
+   "title": "KRAMPUS shadow-collision repair + codegraph rebuild at HEAD"
+  },
+  {
+   "cause": "Lane AO blocks can be orphans (no source/key) while --check passes vacuously; P2 misses flagged-with-args and braced paths. Foreign staged file left untouched; commit used an explicit 4-file pathspec.",
+   "date": "2026-11-21",
+   "id": "engram-2301",
+   "kind": "engram:learning",
+   "line": 2301,
+   "rationale": "What: Fixed the 13-defect stale prompt block and committed (27873db50 on main) together with the KRAMPUS wrapper fix. Dead addresses removed, sections marked historical, restart-queue adopted into orders-in-sync (new 09 source + key + --apply --wsl), render-handoff source corrected.\\nWhy: prompt_check P2 blocked every commit; the cited tools/playbook exist only on other branches, never on main (ancestry-proved).\\nWhere: 7 lane instruction files (outside azazael repo); azazael/docs/agent_orders/07_render_handoff.md + 09_restart_queue.md (new) + tools/agent_orders_sync.py; both WSL lane files via --apply --wsl.\\nLearned: Lane AO blocks can be orphans (no source/key) while --check passes vacuo…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Fixed the 13-defect stale prompt block and committed (27873db50 on main) together with the KRAMPUS wrapper fix. Dead addresses removed, sections marked historical, restart-queue adopted into orders-in-sync (new 09 source + key + --apply --wsl), render-handoff source corrected.\\n",
+   "title": "Stale prompt defect repaired and committed with KRAMPUS fix"
+  },
+  {
+   "cause": "PMB record_batch/recall failing with missing-session errors this session; PAMS + Engram are the working durable stores.",
+   "date": "2026-11-22",
+   "id": "engram-2302",
+   "kind": "engram:config",
+   "line": 2302,
+   "rationale": "What: All 12 Desktop/WASM_SAMPLES techniques recorded for production; each sample computes fib(20)=6765. 01 Rust wasm-bindgen (wasm-pack --target web); 02 TinyGo syscall/js (own wasm_exec.js); 03 Emscripten emcc ccall/cwrap MODULARIZE (emsdk install+activate); 04 AssemblyScript asc --exportRuntime + loader strings; 05 Pyodide CPython-as-wasm CDN + headless test_pyodide.mjs; 06 WASI wasip1 + wasmtime, capability --dir; 07 wasm64/memory64 hand-written WAT poke at 4GiB, validate --features memory64; 08 HYPER-EDGE Component Model: shared wit/calc.wit, component new + compose (kebab-case stem), --invoke 'run(20,22)'=84, crate-relative wit path; 09 nodejs CommonJS target; 10 Go stdlib GOOS=js GOA…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "All 12 Desktop/WASM_SAMPLES techniques recorded for production; each sample computes fib(20)=6765. 01 Rust wasm-bindgen (wasm-pack --target web); 02 TinyGo syscall/js (own wasm_exec.js); 03 Emscripten emcc ccall/cwrap MODULARIZE (emsdk install+activate); 04 AssemblyScript asc --exportRuntime + loader strings; 05 Pyodide CPython-as-wasm CDN + headless test_pyodide.mjs; 06 WASI wasip1 + wasmtime, capability --dir; 07 wasm64/memory64 hand-written WAT poke at 4GiB, validate --features memory64; 08 HYPER-EDGE Component Model: shared wit/calc.wit, component new + compose (kebab-case stem), --invoke 'run(20,22)'=84, crate-relative wit path; 09 nodejs CommonJS target; 10 Go stdlib GOOS=js GOARCH=wa…",
+   "title": "WASM production techniques catalog (12 samples)"
+  },
+  {
+   "cause": "Never sample GPU counters while timing a GPU-bound render; count frame files over one quiet window instead. Clean steady state on the Intel Arc 140T projects ~36 min remaining for 6792 frames at 1920x1080/30fps.",
+   "date": "2026-11-23",
+   "id": "engram-2303",
+   "kind": "engram:discovery",
+   "line": 2303,
+   "rationale": "What: Timing the SMOKE_4D GPU render while sampling GPU performance counters on the render process dragged it from ~2.4 fps down to ~0.24 fps (frames 900->1123 took 15.5 min); one quiet 30 s window using only frame-file counts measured 2.429 fps = 0.412 s/frame, GPU 3D 75.3%, CPU 0.16 cores. Why: The assistant quoted a 75-100 min ETA extrapolated from probe-contaminated windows; the user challenged it citing 38 min elsewhere. Where: C:/Users/clint/Desktop/SMOKE_4D_RENDER/_render.log (first 900 frames went out in ~6 min = 2.5 fps, matching the clean window), frames/smoke_4d/, worker PID 12520. Learned: Never sample GPU counters while timing a GPU-bound render; count frame files over one quie…",
+   "remedy": "",
+   "surface": "~/.engram/engram.db",
+   "symptom": "Timing the SMOKE_4D GPU render while sampling GPU performance counters on the render process dragged it from ~2.4 fps down to ~0.24 fps (frames 900->1123 took 15.5 min); one quiet 30 s window using only frame-file counts measured 2.429 fps = 0.412 s/frame, GPU 3D 75.3%, CPU 0.16 cores.",
+   "title": "GPU render ETA probes contaminate the measurement"
   }
  ],
  "schema": "azazael.harvest/1",
@@ -23724,234 +24216,278 @@
   {
    "path": "ERROR_LOG.md",
    "records": 276,
-   "sha": "901526c0e1e6d21e6b0fd8b7dab1abed3a7ef7920b9b61c17a469d8f01b61168"
+   "sha": "901526c0e1e6d21e6b0fd8b7dab1abed3a7ef7920b9b61c17a469d8f01b61168",
+   "worktree_differs": false
   },
   {
    "path": "LESSONS_MASTER.md",
    "records": 117,
-   "sha": "b66b7380b1a0d665edc8c5be254c7778ca47592b3a8b52e1877d28d8431942fb"
+   "sha": "b66b7380b1a0d665edc8c5be254c7778ca47592b3a8b52e1877d28d8431942fb",
+   "worktree_differs": false
   },
   {
    "path": "MEMORIES.md",
    "records": 71,
-   "sha": "53f7b45566119ccf801c68f0580d1333b9733b3662407e47ad9f113561390be8"
+   "sha": "53f7b45566119ccf801c68f0580d1333b9733b3662407e47ad9f113561390be8",
+   "worktree_differs": false
   },
   {
    "path": "SESSION_STARTUP.md",
    "records": 30,
-   "sha": "dd2c45efce92db5294ba634e9e3f915dcf420a79e7f46b8a7d9ceafacff97398"
+   "sha": "dd2c45efce92db5294ba634e9e3f915dcf420a79e7f46b8a7d9ceafacff97398",
+   "worktree_differs": false
   },
   {
    "path": "docs/GIT_FLEET_BLEEDING_EDGE_2026-11-01.md",
    "records": 14,
-   "sha": "44f49a56bd79842cb866aa5f64ae1c116167c72cbb8c067112355bb3d66a1c92"
+   "sha": "44f49a56bd79842cb866aa5f64ae1c116167c72cbb8c067112355bb3d66a1c92",
+   "worktree_differs": false
   },
   {
    "path": "docs/PACKAGING_PLAN.md",
    "records": 5,
-   "sha": "e481f977275377cc1026b05b4823f828d2062ba135f28784661a636a289a669e"
+   "sha": "e481f977275377cc1026b05b4823f828d2062ba135f28784661a636a289a669e",
+   "worktree_differs": false
   },
   {
    "path": "docs/AZAZAEL_TREE_OF_LIFE.md",
    "records": 5,
-   "sha": "9b78704e94fd4eac7dd2f6a04fb50069280ced78f2f67ccfe73c03ce64a140f4"
+   "sha": "9b78704e94fd4eac7dd2f6a04fb50069280ced78f2f67ccfe73c03ce64a140f4",
+   "worktree_differs": false
   },
   {
    "path": "Project_Nurse_Ratchet/README.md",
    "records": 11,
-   "sha": "6a25c264b4515819dc1fdae425f4e7ae71595f3452933e0c2f5cb02410ee3025"
+   "sha": "d39132d876dc31f77f2d70b64b1a87e53abbc30c7819a70ef605af8c2ce580de",
+   "worktree_differs": false
   },
   {
    "path": "Project_AutoDiffEngine/README.md",
    "records": 1,
-   "sha": "d92d81b95b5e847493f249820990df8cdd1701960e41b31a983282bb6d9590d3"
+   "sha": "d92d81b95b5e847493f249820990df8cdd1701960e41b31a983282bb6d9590d3",
+   "worktree_differs": false
   },
   {
    "path": "Project_BIBL_Bibliographic/README.md",
    "records": 1,
-   "sha": "cd592609e1430a73cd51fc55a03be21a8669b2a517d6c13953c6eb437a596819"
+   "sha": "cd592609e1430a73cd51fc55a03be21a8669b2a517d6c13953c6eb437a596819",
+   "worktree_differs": false
   },
   {
    "path": "Project_CODEX_VideoEngine/README.md",
    "records": 5,
-   "sha": "8bedd307769b9652929654a328b3158bcb6acd44919368fa794fc17672ec98cc"
+   "sha": "8bedd307769b9652929654a328b3158bcb6acd44919368fa794fc17672ec98cc",
+   "worktree_differs": false
   },
   {
    "path": "Project_Compliance/README.md",
    "records": 1,
-   "sha": "27d4314169d131c6ff29cb73da3e881a6d6576a625fd204cb4648a9cf8f515f8"
+   "sha": "27d4314169d131c6ff29cb73da3e881a6d6576a625fd204cb4648a9cf8f515f8",
+   "worktree_differs": false
   },
   {
    "path": "Project_CRADLE/README.md",
    "records": 3,
-   "sha": "522175f4ebaad54daf173108e866f50d14883a77b0f6bf51025225cb70c69cc8"
+   "sha": "522175f4ebaad54daf173108e866f50d14883a77b0f6bf51025225cb70c69cc8",
+   "worktree_differs": false
   },
   {
    "path": "Project_EcosystemOrchestrator/README.md",
    "records": 5,
-   "sha": "15c319134b1e278533f0c59da1d74fee815d019f324c5f93e166a7edcbe21d07"
+   "sha": "15c319134b1e278533f0c59da1d74fee815d019f324c5f93e166a7edcbe21d07",
+   "worktree_differs": false
   },
   {
    "path": "Project_ELIZA/README.md",
    "records": 15,
-   "sha": "e25647524fbce050ab9ca89848064ccfaa47b5c70c69d8d8fc50bcea62acc134"
+   "sha": "e25647524fbce050ab9ca89848064ccfaa47b5c70c69d8d8fc50bcea62acc134",
+   "worktree_differs": false
   },
   {
    "path": "Project_FLAME/README.md",
    "records": 6,
-   "sha": "aae4cea187b088730dfd93bdaaa3c99a1ad15a6fb46347baaafe0aa3d8b443a3"
+   "sha": "aae4cea187b088730dfd93bdaaa3c99a1ad15a6fb46347baaafe0aa3d8b443a3",
+   "worktree_differs": false
   },
   {
    "path": "Project_FLAMING_SWORD/README.md",
    "records": 11,
-   "sha": "df8b560990e1ddb8d88c6aefd7f3bc97a660c28cffe0ebc064b2c410816e4eb0"
+   "sha": "df8b560990e1ddb8d88c6aefd7f3bc97a660c28cffe0ebc064b2c410816e4eb0",
+   "worktree_differs": false
   },
   {
    "path": "Project_FreeThreadedRuntime/README.md",
    "records": 1,
-   "sha": "4abe87d62a3b1a94c068587b2c494046e817bc4e6d3c2fe2734cf6861f8e607f"
+   "sha": "4abe87d62a3b1a94c068587b2c494046e817bc4e6d3c2fe2734cf6861f8e607f",
+   "worktree_differs": false
   },
   {
    "path": "Project_GAMORA/README.md",
    "records": 1,
-   "sha": "5e14f66bb665123f81f82c04c40a3bfe74765e353890fbd8d30f36f0cd51fc89"
+   "sha": "5e14f66bb665123f81f82c04c40a3bfe74765e353890fbd8d30f36f0cd51fc89",
+   "worktree_differs": false
   },
   {
    "path": "Project_GOSP_Governance/README.md",
    "records": 1,
-   "sha": "256b6368457b392397bbb5f996d81dc95bd453ae0f85cb994c234b88c6395f5b"
+   "sha": "256b6368457b392397bbb5f996d81dc95bd453ae0f85cb994c234b88c6395f5b",
+   "worktree_differs": false
   },
   {
    "path": "Project_HORUS_Monitoring/README.md",
    "records": 1,
-   "sha": "82fb17ac2f85068be4a9f58bd2efb184923dee10e85ca075dc46429839f4df7d"
+   "sha": "82fb17ac2f85068be4a9f58bd2efb184923dee10e85ca075dc46429839f4df7d",
+   "worktree_differs": false
   },
   {
    "path": "Project_HYDRA_MLCluster/README.md",
    "records": 5,
-   "sha": "16b6df2fa5b67ac303c6fcb8e87c848d414489999a81789b7507966213ad5635"
+   "sha": "16b6df2fa5b67ac303c6fcb8e87c848d414489999a81789b7507966213ad5635",
+   "worktree_differs": false
   },
   {
    "path": "Project_JAEGER/README.md",
    "records": 8,
-   "sha": "26e88beb47d28da07efed831d618dc165e2b3321cda04b07f2118ea3948e9d1d"
+   "sha": "26e88beb47d28da07efed831d618dc165e2b3321cda04b07f2118ea3948e9d1d",
+   "worktree_differs": false
   },
   {
    "path": "Project_KLINK_Protocol/README.md",
    "records": 1,
-   "sha": "138fccde006545b4f89dc0869b2f4f16cf31b32a8d461555f8a4f338cd33acc1"
+   "sha": "138fccde006545b4f89dc0869b2f4f16cf31b32a8d461555f8a4f338cd33acc1",
+   "worktree_differs": false
   },
   {
    "path": "Project_Loggers_Telemetry/README.md",
    "records": 1,
-   "sha": "c76484c8b8d63a847f8f0f338ff61d6ab1a44a66f718b5244f21a23a211080dc"
+   "sha": "c76484c8b8d63a847f8f0f338ff61d6ab1a44a66f718b5244f21a23a211080dc",
+   "worktree_differs": false
   },
   {
    "path": "Project_LUCY/README.md",
    "records": 1,
-   "sha": "468b0c66b4b54040a7015d8065cb4c78598738f608095d2c2d2a06c5d2111bbe"
+   "sha": "468b0c66b4b54040a7015d8065cb4c78598738f608095d2c2d2a06c5d2111bbe",
+   "worktree_differs": false
   },
   {
    "path": "Project_ML_Platform_Integration/README.md",
    "records": 1,
-   "sha": "d255d132de10657648a18104ac05824a3ef6a2f9a436b2e2e1146258baf11945"
+   "sha": "d255d132de10657648a18104ac05824a3ef6a2f9a436b2e2e1146258baf11945",
+   "worktree_differs": false
   },
   {
    "path": "Project_MultiProviderInference/README.md",
    "records": 1,
-   "sha": "062dfc81a02ac034295d0d58e2bd3b30c9eccfece1a224e1158bc131ec2eaf22"
+   "sha": "062dfc81a02ac034295d0d58e2bd3b30c9eccfece1a224e1158bc131ec2eaf22",
+   "worktree_differs": false
   },
   {
    "path": "Project_NeuralWiring/README.md",
    "records": 1,
-   "sha": "72143f55250b3c37a6cbc19a75defd5676e6768443123e6477ec638ffd9056bb"
+   "sha": "72143f55250b3c37a6cbc19a75defd5676e6768443123e6477ec638ffd9056bb",
+   "worktree_differs": false
   },
   {
    "path": "Project_NSGA_Optimizer/README.md",
    "records": 1,
-   "sha": "ffcc839f58d4261c66f501a81ae4f37ad56bac94726e4d66af5e44cc9e9d7ff1"
+   "sha": "ffcc839f58d4261c66f501a81ae4f37ad56bac94726e4d66af5e44cc9e9d7ff1",
+   "worktree_differs": false
   },
   {
    "path": "Project_Oxenford/README.md",
    "records": 1,
-   "sha": "15a21a9fcbc0dfd7db21be3ff5b77f03c89306f1dee8f1af7ad9c1b02c12465f"
+   "sha": "15a21a9fcbc0dfd7db21be3ff5b77f03c89306f1dee8f1af7ad9c1b02c12465f",
+   "worktree_differs": false
   },
   {
    "path": "Project_PAMS_Daemon/README.md",
    "records": 1,
-   "sha": "7f47b9829a2ce14b5ffa880ac89f3cfb3520332d6d73d2f0a734ec6260fba224"
+   "sha": "7f47b9829a2ce14b5ffa880ac89f3cfb3520332d6d73d2f0a734ec6260fba224",
+   "worktree_differs": false
   },
   {
    "path": "Project_PERSEPHONE_Sync/README.md",
    "records": 5,
-   "sha": "afc90debdb00a3ee0a77bd31aebc3b45ff3f336034b868006c64dba4101f60dd"
+   "sha": "afc90debdb00a3ee0a77bd31aebc3b45ff3f336034b868006c64dba4101f60dd",
+   "worktree_differs": false
   },
   {
    "path": "Project_POINDEXTER_Indexer/README.md",
    "records": 1,
-   "sha": "d4bbedec4b504c0f0403a2d442ed023f572312660b1c9d0d2a1cccb789f9f852"
+   "sha": "d4bbedec4b504c0f0403a2d442ed023f572312660b1c9d0d2a1cccb789f9f852",
+   "worktree_differs": false
   },
   {
    "path": "Project_PolyglotInterpreters/README.md",
    "records": 1,
-   "sha": "83bf28e03d7af96104e98eae949f5a1c5bf1dc2cbfb76fb3d2e6bc6a318e3440"
+   "sha": "83bf28e03d7af96104e98eae949f5a1c5bf1dc2cbfb76fb3d2e6bc6a318e3440",
+   "worktree_differs": false
   },
   {
    "path": "Project_PSYCHE_Consciousness/README.md",
    "records": 1,
-   "sha": "950e56e58c7c2e84dfb96576a1eaf6723745e3f7a73a058d61f35764df37ec4b"
+   "sha": "950e56e58c7c2e84dfb96576a1eaf6723745e3f7a73a058d61f35764df37ec4b",
+   "worktree_differs": false
   },
   {
    "path": "Project_Rendering_Pipeline/README.md",
    "records": 1,
-   "sha": "8d06ad3984f09a403bc5af719bc901e20801c072cdaee48a6b0bdc530a3450cb"
+   "sha": "8d06ad3984f09a403bc5af719bc901e20801c072cdaee48a6b0bdc530a3450cb",
+   "worktree_differs": false
   },
   {
    "path": "Project_RustAccelerator/README.md",
    "records": 1,
-   "sha": "8dd8c3f37cb0acd7475abfac612fb2cbadc9daf82ab5a018a5c88cc6c0332a5b"
+   "sha": "8dd8c3f37cb0acd7475abfac612fb2cbadc9daf82ab5a018a5c88cc6c0332a5b",
+   "worktree_differs": false
   },
   {
    "path": "Project_Scribe/README.md",
    "records": 5,
-   "sha": "1d2a2da5e3eeb7c67c188ee5480af072dbdff7e6b959be766a651a7d9d189acd"
+   "sha": "1d2a2da5e3eeb7c67c188ee5480af072dbdff7e6b959be766a651a7d9d189acd",
+   "worktree_differs": false
   },
   {
    "path": "Project_ShardEngine/README.md",
    "records": 1,
-   "sha": "208a53a931219c9f00fd24ecbfda4d435517e6a27157f0f95f18d81cf756b761"
+   "sha": "208a53a931219c9f00fd24ecbfda4d435517e6a27157f0f95f18d81cf756b761",
+   "worktree_differs": false
   },
   {
    "path": "Project_SHARDEX/README.md",
    "records": 3,
-   "sha": "3d19416398f959676e1596f3a1fe38502cdd680479b3a07205b1ba2fb30eddff"
+   "sha": "3d19416398f959676e1596f3a1fe38502cdd680479b3a07205b1ba2fb30eddff",
+   "worktree_differs": false
   },
   {
    "path": "Project_TARBABY_FileSearch/README.md",
    "records": 1,
-   "sha": "b63dd6b21f78749f4a277acca02194f749befd71496acce6cb6429e901554f06"
+   "sha": "b63dd6b21f78749f4a277acca02194f749befd71496acce6cb6429e901554f06",
+   "worktree_differs": false
   },
   {
    "path": "Project_TERENCE_Oracle/README.md",
    "records": 1,
-   "sha": "9bfe81f0992870134a6468aa719ccb620d4e4ea40f1c5be35bf5a4aaf25d7b6d"
+   "sha": "9bfe81f0992870134a6468aa719ccb620d4e4ea40f1c5be35bf5a4aaf25d7b6d",
+   "worktree_differs": false
   },
   {
    "path": "Project_WASM_Compiler/README.md",
    "records": 5,
-   "sha": "0e31aa5e5d9f947e8845892ffa28c28825a0b14f5fc568d74b4d775ddb028db4"
+   "sha": "0e31aa5e5d9f947e8845892ffa28c28825a0b14f5fc568d74b4d775ddb028db4",
+   "worktree_differs": false
   }
  ],
  "totals": {
   "by_kind": {
-   "engram:architecture": 37,
-   "engram:bugfix": 190,
-   "engram:config": 14,
-   "engram:decision": 486,
-   "engram:discovery": 266,
-   "engram:learning": 287,
+   "engram:architecture": 40,
+   "engram:bugfix": 197,
+   "engram:config": 17,
+   "engram:decision": 503,
+   "engram:discovery": 274,
+   "engram:learning": 289,
    "engram:lesson": 62,
-   "engram:pattern": 15,
+   "engram:pattern": 16,
    "error": 276,
    "lesson": 117,
    "limitation": 111,
@@ -23959,7 +24495,7 @@
    "memory": 71,
    "practice": 30
   },
-  "records": 1986,
+  "records": 2027,
   "surfaces": 44
  }
 }
