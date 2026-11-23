@@ -54,6 +54,12 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$SCRIPT_DIR" || exit 1
 
+# Same MSYS contract as .githooks/pre-commit Check 0: the legs below hand
+# POSIX paths to Windows-native interpreters, so conversion must be on.
+# A session-wide MSYS_NO_PATHCONV=1 mangles the handoff to C:\c\...
+# (measured 2026-11-23). Unset it here; callers keep their own setting.
+unset MSYS_NO_PATHCONV
+
 # 3.15t production interpreter, same ladder as pre-commit (python3 on PATH was
 # 3.13.14 from WindowsApps -- a fourth interpreter -- so the name is pinned).
 PYTHON3="C:/Azazael/.venvs/py315t/Scripts/python.exe"

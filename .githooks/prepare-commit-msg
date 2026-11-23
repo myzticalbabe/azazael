@@ -45,6 +45,11 @@
 
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
+# Same MSYS contract as pre-commit Check 0: POSIX paths below reach
+# Windows-native interpreters, so conversion must be on (measured
+# 2026-11-23: inherited MSYS_NO_PATHCONV=1 mangles them to C:\c\...).
+unset MSYS_NO_PATHCONV
+
 MSG_FILE="$1"
 MSG_SOURCE="$2"
 

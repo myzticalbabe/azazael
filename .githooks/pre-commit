@@ -67,6 +67,14 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$SCRIPT_DIR" || exit 1
 
+# The gates below hand POSIX paths (SCRIPT_DIR/...) to Windows-native
+# interpreters and depend on MSYS path conversion to translate them. A
+# session-wide MSYS_NO_PATHCONV=1 (the default for git plumbing, which needs
+# raw C:/ paths) disables that translation and the handoff mangles to
+# C:\c\... (measured 2026-11-23: Disk gate exit 2 on 57.5 GB free).
+# Unset it here so the hook works whatever the caller exported.
+unset MSYS_NO_PATHCONV
+
 # 3.15t production interpreter (python3 previously resolved to 3.13.14
 # WindowsApps — a fourth interpreter). Pin here so every gate runs on 3.15t.
 PYTHON3="C:/Azazael/.venvs/py315t/Scripts/python.exe"
