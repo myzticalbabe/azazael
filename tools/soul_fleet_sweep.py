@@ -61,6 +61,23 @@ GENERATED_DIR_PARTS = ("build", "dist", "__pycache__")
 GENERATED_DIR_SUFFIXES = (".egg-info", ".dist-info")
 
 
+def _script_roots(paths: list[str]) -> set[str]:
+    """Top-level build/dist dirs that hold orchestration sources.
+    Measured 2026-11-23: vermillion_lightfury tracks build/*.bat +
+    check_*.py + _pathutil.py -- hand-written build scripts, zero
+    generated output. A setuptools output dir never contains .bat /
+    .sh / Makefile orchestration, so their presence reclassifies the
+    whole top dir from 'output' to 'scripts'."""
+    roots: set[str] = set()
+    for p in paths:
+        parts = PurePosixPath(p.replace("\\", "/")).parts
+        if len(parts) > 1 and parts[0] in GENERATED_DIR_PARTS:
+            base = parts[-1].lower()
+            if base == "makefile" or base.endswith((".bat", ".sh", ".ps1")):
+                roots.add(parts[0])
+    return roots
+
+
 def _generated(path: str) -> bool:
     """A tracked path that smells like build output. Parts, not substrings:
     a substring test on "/build/" misses a root-level build/ dir (no
@@ -157,8 +174,11 @@ def check_repo(path: Path, checker: Path) -> dict:
                                  % (len(dirty), dirty[0].strip()[:80]))
     rc, out = run(["git", "ls-files"], path)
     if rc == 0:
-        stale = sorted({ln for ln in out.splitlines()
-                        if ln.strip() and _generated(ln)})
+        tracked = [ln for ln in out.splitlines() if ln.strip()]
+        scripts = _script_roots(tracked)
+        stale = sorted({ln for ln in tracked
+                        if _generated(ln) and
+                        PurePosixPath(ln.replace("\\", "/")).parts[0] not in scripts})
         if stale:
             entry["findings"].append(
                 "STALE-BUILD: %d tracked generated path(s), e.g. %s"

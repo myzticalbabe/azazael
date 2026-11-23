@@ -113,6 +113,36 @@ def test_no_remote_means_no_origin_finding(tmp_path):
     assert (branch, source) == (None, "none")
 
 
+def test_build_scripts_dir_not_stale(tmp_path):
+    """build/ holding orchestration sources is scripts, not output."""
+    d = tmp_path / "scriptsproj"
+    (d / "build").mkdir(parents=True)
+    (d / "build" / "build.bat").write_text("@echo off\n", encoding="utf-8")
+    (d / "build" / "helper.py").write_text("x = 1\n", encoding="utf-8")
+    (d / "src").mkdir()
+    subprocess.run(["git", "init", "-b", "main"], cwd=d,
+                     capture_output=True, check=True, timeout=120)
+    subprocess.run(["git", "add", "."], cwd=d,
+                     capture_output=True, check=True, timeout=120)
+    entries = sweep.sweep(tmp_path, "nonexistent-checker", {"scriptsproj"})
+    assert entries
+    assert not any("STALE-BUILD" in f for f in entries[0]["findings"]), entries
+
+
+def test_setuptools_build_output_still_flags(tmp_path):
+    """A script-less build/ of copied .py output still flags."""
+    d = tmp_path / "genproj"
+    (d / "build" / "lib").mkdir(parents=True)
+    (d / "build" / "lib" / "copied.py").write_text("x = 1\n", encoding="utf-8")
+    (d / "src").mkdir()
+    subprocess.run(["git", "init", "-b", "main"], cwd=d,
+                     capture_output=True, check=True, timeout=120)
+    subprocess.run(["git", "add", "."], cwd=d,
+                     capture_output=True, check=True, timeout=120)
+    entries = sweep.sweep(tmp_path, "nonexistent-checker", {"genproj"})
+    assert any("STALE-BUILD" in f for f in entries[0]["findings"]), entries
+
+
 def test_non_project_dir_skipped(tmp_path):
     (tmp_path / "notes").mkdir()
     checker = sweep.Path(__file__).resolve().parents[1] / "tools" / "soul_licence_check.py"
