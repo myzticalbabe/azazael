@@ -98,7 +98,8 @@ def read_text_opt(path: Path) -> str | None:
     """Read a prose file, or None when it is not UTF-8 (left untouched)."""
     try:
         return read_text(path)
-    except UnicodeDecodeError:
+    except UnicodeDecodeError as exc:
+        print(f"  [SKIP] {path.name}: not UTF-8 ({exc}); left untouched", file=sys.stderr)
         return None
 
 

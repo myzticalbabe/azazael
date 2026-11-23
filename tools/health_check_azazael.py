@@ -25,7 +25,10 @@ for _sub in ("", "src", "src/ORCHESTRATION", "src/TOOLS"):
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 except (AttributeError, ValueError):
-    pass
+    # Legacy console without reconfigure: glyphs below degrade, report runs.
+    _STDOUT_UTF8 = False
+else:
+    _STDOUT_UTF8 = True
 
 MODULES = [
     # Expected symbols were re-derived from `dir(module)` on 2026-11-15, not

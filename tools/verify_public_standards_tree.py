@@ -49,10 +49,11 @@ def tracked_files(root: Path) -> set[str] | None:
             check=True,
             timeout=120,
         ).stdout
-    except (OSError, subprocess.SubprocessError):
+    except (OSError, subprocess.SubprocessError) as exc:
         # CalledProcessError (not a git checkout) and TimeoutExpired (a git that
         # never answered) both mean "no tracked-file list", which the caller
         # already handles by skipping the uncommitted-files report outright.
+        print(f"  [SKIP] tracked-file list unavailable ({exc}); skipping uncommitted-files report", file=sys.stderr)
         return None
     return {p.replace("\\", "/") for p in out.decode("utf-8", "replace").split("\0") if p}
 
