@@ -419,7 +419,7 @@ def process_repo(repo_path, repo_name):
         print("\n6. Running verification...")
         result = subprocess.run(
             [sys.executable, r"C:\Azazael\azazael\tools\verify_public_standards.py", str(repo_path)],
-            capture_output=True, text=True, timeout=60
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60
         )
         print(result.stdout)
         if result.stderr:
