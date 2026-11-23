@@ -76,6 +76,43 @@ def test_license_only_dir_skipped(tmp_path):
     assert sweep.sweep(tmp_path, checker, set()) == []
 
 
+def test_exclude_file_skips_declared_artefact(tmp_path):
+    """A declared artefact is skipped by decision, with the file as record."""
+    d = tmp_path / "vendored-cache"
+    d.mkdir()
+    (d / "pyproject.toml").write_text("[project]\nname='x'\n", encoding="utf-8")
+    (d / "src").mkdir()
+    excl = tmp_path / "excludes.txt"
+    excl.write_text("# cffi sdist cache\n\nvendored-cache\n", encoding="utf-8")
+    checker = sweep.Path(__file__).resolve().parents[1] / "tools" / "soul_licence_check.py"
+    assert sweep.load_excludes(str(excl)) == {"vendored-cache"}
+    assert sweep.sweep(tmp_path, checker, set(), {"vendored-cache"}) == []
+    # ... but without the declaration it still flags.
+    assert len(sweep.sweep(tmp_path, checker, set())) == 1
+
+
+def test_parse_lsremote_default():
+    sample = ("ref: refs/heads/main\tHEAD\n"
+              "abc123\tHEAD\n")
+    assert sweep.parse_lsremote_default(sample) == "main"
+    assert sweep.parse_lsremote_default("") is None
+    assert sweep.parse_lsremote_default("abc123\tHEAD\n") is None
+
+
+def test_no_remote_means_no_origin_finding(tmp_path):
+    """A repo with no origin must not raise ORIGIN-MASTER."""
+    d = tmp_path / "lonely"
+    d.mkdir()
+    subprocess.run(["git", "init", "-b", "main"], cwd=d,
+                     capture_output=True, check=True, timeout=120)
+    subprocess.run(["git", "config", "user.email", "t@t"], cwd=d,
+                     capture_output=True, check=True, timeout=120)
+    subprocess.run(["git", "commit", "--allow-empty", "-m", "x"], cwd=d,
+                     capture_output=True, check=True, timeout=120)
+    branch, source = sweep.remote_default_branch(d)
+    assert (branch, source) == (None, "none")
+
+
 def test_non_project_dir_skipped(tmp_path):
     (tmp_path / "notes").mkdir()
     checker = sweep.Path(__file__).resolve().parents[1] / "tools" / "soul_licence_check.py"

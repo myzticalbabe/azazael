@@ -16,10 +16,16 @@ is blind to exactly three things, each of which bit this fleet on 2026-11-23:
                 predated the purge; the worktree scan kept passing them
                 because nobody asked whether they should be tracked at all).
 
-Plus one convention signal, measured locally with no network:
+Plus one convention signal, fetch-fresh:
 
-  ORIGIN-MASTER  refs/remotes/origin/HEAD still points at `master` while the
-                fleet default is `main` (EveUnleashed, fixed 2026-11-23).
+  ORIGIN-MASTER  the remote default branch is still `master` while the fleet
+                default is `main`. Read live via ls-remote --symref (the
+                local origin/HEAD symref goes stale after a switch --
+                measured 2026-11-23 on EveUnleashed); local symref is the
+                offline fallback.
+
+Declared artefacts (--exclude-from FILE, one dir name per line) are
+skipped by decision, not by blindness: the file is the record.
 
 Usage:
     python tools/soul_fleet_sweep.py [--root C:/Azazael] [--json out.json]
@@ -87,6 +93,55 @@ def own_toplevel(root: Path, path: Path) -> bool:
     return False
 
 
+def parse_lsremote_default(out: str) -> str | None:
+    """Read the true remote default from `git ls-remote --symref` output.
+    First line looks like `ref: refs/heads/main\tHEAD`. Returns None when
+    the server did not advertise a symref (or the output is empty)."""
+    for ln in out.splitlines():
+        if ln.startswith("ref: "):
+            ref = ln[4:].split()[0]
+            if ref.startswith("refs/heads/"):
+                return ref[len("refs/heads/"):]
+    return None
+
+
+def remote_default_branch(path: Path) -> tuple[str | None, str]:
+    """(branch, source). Live ls-remote first (fetch-fresh: the local
+    origin/HEAD symref goes stale after a default-branch switch --
+    measured 2026-11-23 on EveUnleashed), local symref as the offline
+    fallback, (None, source) when neither answers."""
+    try:
+        proc = subprocess.run(
+            ["git", "ls-remote", "--symref", "origin", "HEAD"],
+            cwd=str(path), capture_output=True, text=True,
+            encoding="utf-8", errors="replace", timeout=30)
+    except (OSError, subprocess.SubprocessError) as exc:
+        proc = None
+        print("soul-fleet-sweep: ls-remote unreachable for %s (%s); "
+              "using local origin/HEAD" % (path.name, type(exc).__name__),
+              file=sys.stderr)
+    if proc is not None and proc.returncode == 0:
+        branch = parse_lsremote_default(proc.stdout or "")
+        if branch:
+            return branch, "remote"
+    rc, out = run(["git", "symbolic-ref", "refs/remotes/origin/HEAD"], path)
+    if rc == 0 and out.strip():
+        return out.strip().rsplit("/", 1)[-1], "local"
+    return None, "none"
+
+
+def load_excludes(path: str) -> set[str]:
+    """Declared-artefact names, one per line; `#` comments and blanks out.
+    The file itself is the visibility: an excluded dir is a decision with
+    a reason, not a blind spot."""
+    names: set[str] = set()
+    for ln in Path(path).read_text(encoding="utf-8").splitlines():
+        ln = ln.split("#", 1)[0].strip()
+        if ln:
+            names.add(ln)
+    return names
+
+
 def check_repo(path: Path, checker: Path) -> dict:
     """Run the per-repo gate plus the three fleet-only signals."""
     entry: dict = {"path": path.name, "kind": "repo", "findings": []}
@@ -108,22 +163,25 @@ def check_repo(path: Path, checker: Path) -> dict:
             entry["findings"].append(
                 "STALE-BUILD: %d tracked generated path(s), e.g. %s"
                 % (len(stale), stale[0][:100]))
-    rc, out = run(["git", "symbolic-ref", "refs/remotes/origin/HEAD"], path)
-    if rc == 0:
-        default = out.strip().rsplit("/", 1)[-1]
+    default, source = remote_default_branch(path)
+    if default:
         entry["origin_default"] = default
         if default == "master":
             entry["findings"].append(
-                "ORIGIN-MASTER: remote default is master; fleet convention is main")
+                "ORIGIN-MASTER: remote default is master (%s read); "
+                "fleet convention is main" % source)
     return entry
 
 
-def sweep(root: Path, checker: Path, only: set[str]) -> list[dict]:
+def sweep(root: Path, checker: Path, only: set[str],
+          excluded: set[str] | None = None) -> list[dict]:
     entries = []
     for child in sorted(root.iterdir()):
         if not child.is_dir() or child.name.startswith("."):
             continue
         if only and child.name not in only:
+            continue
+        if excluded and child.name in excluded:
             continue
         if (child / ".git").is_dir() and own_toplevel(root, child):
             entries.append(check_repo(child, checker))
@@ -143,6 +201,8 @@ def main(argv=None) -> int:
                     help="fleet directory (default: parent of this repo)")
     ap.add_argument("--repos", default="",
                     help="comma-separated subset of directory names")
+    ap.add_argument("--exclude-from", default="",
+                    help="file of declared-artefact dir names to skip")
     ap.add_argument("--json", default="", help="write the full report here")
     a = ap.parse_args(argv)
 
@@ -156,7 +216,12 @@ def main(argv=None) -> int:
         return 2
 
     only = {r.strip() for r in a.repos.split(",") if r.strip()}
-    entries = sweep(root, checker, only)
+    excluded: set[str] = set()
+    if a.exclude_from:
+        excluded = load_excludes(a.exclude_from)
+        print("soul-fleet-sweep: %d declared artefact(s) excluded"
+              % len(excluded))
+    entries = sweep(root, checker, only, excluded)
     if not entries:
         print("soul-fleet-sweep: nothing project-like under %s" % root)
         return 2
