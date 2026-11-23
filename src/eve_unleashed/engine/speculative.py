@@ -9,6 +9,7 @@ from __future__ import annotations
 import time
 from typing import Any, List, Optional
 
+import numpy as np
 from llama_cpp import Llama
 
 
@@ -46,8 +47,6 @@ class SpeculativeEngine:
 
     def _sample_token(self, logits: List[float], temperature: float, top_p: float) -> int:
         """Sample a token from logits with temperature and top-p."""
-        import numpy as np
-
         if temperature == 0:
             return int(np.argmax(logits))
 

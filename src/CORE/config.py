@@ -22,6 +22,7 @@ Environment Variable Overrides:
 Version: 1.0.0
 """
 
+import inspect
 import os
 import subprocess
 import threading
@@ -509,7 +510,6 @@ def _find_config_file() -> (Path | None):
     # 10. Caller's module location (for test subprocesses)
     # Look up the stack for a caller outside this module
     try:
-        import inspect
         frame = inspect.currentframe()
         while frame:
             frame = frame.f_back

@@ -10,12 +10,15 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    import gguf
+except ImportError:  # optional dep; functions below degrade gracefully
+    gguf = None
+
 
 def edit_metadata(model_path: str, updates: dict[str, Any], dry_run: bool = False) -> int:
     """Edit GGUF model metadata."""
-    try:
-        import gguf
-    except ImportError:
+    if gguf is None:
         print("ERROR: gguf library not installed. Install with: pip install gguf", file=sys.stderr)
         return 1
 
@@ -95,9 +98,7 @@ def edit_metadata(model_path: str, updates: dict[str, Any], dry_run: bool = Fals
 
 def list_metadata(model_path: str) -> int:
     """List all metadata fields in a GGUF model."""
-    try:
-        import gguf
-    except ImportError:
+    if gguf is None:
         print("ERROR: gguf library not installed. Install with: pip install gguf", file=sys.stderr)
         return 1
 

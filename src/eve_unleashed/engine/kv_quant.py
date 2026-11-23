@@ -6,7 +6,10 @@ KV Cache Quantization (8-bit)
 
 from __future__ import annotations
 
+import numpy as np
 from typing import Any, Optional
+
+from llama_cpp import Llama
 
 
 class KVQuantizer:
@@ -27,8 +30,6 @@ class KVQuantizer:
 
     def quantize(self, key: str, data: Any) -> Any:
         """Quantize KV cache tensor to 8-bit."""
-        import numpy as np
-
         arr = np.array(data, dtype=np.float32)
         original_shape = arr.shape
 
@@ -61,8 +62,6 @@ class KVQuantizer:
 
     def dequantize(self, key: str) -> Any:
         """Dequantize KV cache tensor back to float32."""
-        import numpy as np
-
         if key not in self._quantized_cache:
             raise KeyError(f"No quantized cache for key: {key}")
 
@@ -77,8 +76,6 @@ class KVQuantizer:
 
     def get_memory_savings(self) -> dict:
         """Calculate memory savings from quantization."""
-        import numpy as np
-
         original_bytes = 0
         quantized_bytes = 0
 
@@ -137,8 +134,6 @@ def create_quantized_llama(
     Returns:
         Llama model with KV quantizer attached
     """
-    from llama_cpp import Llama
-
     model = Llama(model_path=model_path, n_ctx=n_ctx, verbose=False, **kwargs)
     apply_kv_quantization(model, bits=kv_bits)
     return model
