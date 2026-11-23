@@ -44,6 +44,9 @@
 #        scanner reads the INDEX, so with a stale index it certifies a version
 #        nobody has on disk, and that version is what would be committed
 #   2.   staged NEW anti-patterns     (tools/staged_scanner_gate.py)
+#   2b.  SOUL licence on staged names   (tools/soul_licence_check.py) -- runs
+#        only when the index touches licence-relevant files; the whole tree
+#        is re-derived at push (evidence_tier.sh Check 8b)
 #   3.   canon drift                  (tools/canon_drift_check.py --check)
 #   4.   gate registry + hook parity  (tools/preflight_all.py --self-test)
 #   7b.  testing-paradigm G1          (tools/test_paradigm_gate.py)
@@ -166,6 +169,37 @@ else
     echo "[Scanner] gate not found -- passing loud (check unrunnable)"
 fi
 echo ""
+
+# ─── Check 2b (blocking): SOUL LICENCE ONLY on licence-relevant changes ───
+# Owner mandate, permanent: exactly one project licence (Soul Forge v1.0,
+# LicenseRef-SoulForge-1.0). The checker takes no path arguments and scans the
+# whole worktree (~13 s measured 2026-11-23), so FAST runs it only when the
+# staged changeset touches licence-relevant names; the whole-tree re-derivation
+# rides the evidence tier at push. A scoped skip is printed, never implied.
+# Declared override, never silent: ALLOW_SOUL_LICENCE=1.
+STAGED_LICENCE_HITS=$(git diff --cached --name-only --diff-filter=ACM | grep -i -E "(^|/)(LICENSE|LICENCE|NOTICE|CITATION\.cff|PUBLIC_MANIFEST\.json|DISCLOSURE[^/]*\.md|MANIFEST_NOTES\.md)$|\.pyproject\.toml$|(^|/)pyproject\.toml$|(^|/)README\.md$" || true)
+if [ "${ALLOW_SOUL_LICENCE:-}" = "1" ]; then
+    echo "[Soul] skipped: ALLOW_SOUL_LICENCE=1 declared."
+    echo ""
+fi
+if [ "${ALLOW_SOUL_LICENCE:-}" != "1" ] && [ -n "$STAGED_LICENCE_HITS" ] && [ -f "$SCRIPT_DIR/tools/soul_licence_check.py" ]; then
+    echo "[Soul] Licence-relevant files staged; running SOUL LICENCE ONLY gate..."
+    SOUL_OUT=$("$PY" "$SCRIPT_DIR/tools/soul_licence_check.py" 2>&1)
+    SOUL_EXIT=$?
+    echo "$SOUL_OUT" | tail -6
+    if [ $SOUL_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Soul] BLOCKED: foreign licence claim in the tree this commit lands on."
+        echo "[Soul] Fix: remove the foreign claim (Soul Forge v1.0 only)."
+        echo "[Soul] Override (declared): ALLOW_SOUL_LICENCE=1."
+        exit 1
+    fi
+    echo ""
+fi
+if [ "${ALLOW_SOUL_LICENCE:-}" != "1" ] && [ -z "$STAGED_LICENCE_HITS" ]; then
+    echo "[Soul] no licence-relevant files staged -- skipping loud (push tier re-derives)."
+    echo ""
+fi
 
 # ─── Check 3: canon drift (source corpus vs load path) ───
 # `skills/` is the source corpus (RULE 0R); `.agents/skills/<n>/SKILL.md` is

@@ -32,3 +32,17 @@ jobs:
 
       - name: Accessibility Audit
         run: python tools/audit_accessibility.py --path . --fail-on high
+  soul-licence:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          # No `cache: 'pip'`: the checker is stdlib-only.
+
+      - name: SOUL LICENCE ONLY gate
+        run: python tools/soul_licence_check.py

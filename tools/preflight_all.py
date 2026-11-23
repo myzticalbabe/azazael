@@ -186,6 +186,24 @@ GATES: Tuple[Gate, ...] = (
         requires=(),  # the index, not a file
     ),
     Gate(
+        name="soul-licence",
+        # One row, two call sites: pre-commit Check 2b (scoped to staged
+        # licence-relevant names) and evidence_tier.sh Check 8b (whole tree
+        # at push). hook_parity is set-based on distinct scripts, so one row
+        # covers both. Owner mandate, permanent (2026-11-23).
+        argv=("tools/soul_licence_check.py",),
+        interpreter="python3",
+        env=(),
+        inside_hook=True,
+        blocking=True,
+        slow=True,
+        reads="whole worktree for foreign project-licence claims (CDDL/MIT/GPL/Apache/BSD/MPL)",
+        control_test="tests/test_soul_licence_gate.py",
+        control=None,
+        uncontrolled_because=None,
+        requires=(),  # the worktree, not a file
+    ),
+    Gate(
         name="canon-drift",
         argv=("tools/canon_drift_check.py", "--check"),
         interpreter="python3",

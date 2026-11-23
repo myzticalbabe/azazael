@@ -39,6 +39,7 @@
 #   6d.    METTHEW family catalogue      (tools/metthew_families.py --check)
 #   6e.    at-risk systems register      (tools/at_risk_register.py --check)
 #   7.     paradigm rule 1 (advisory)    (tools/paradigm_gate.py --check)
+#   8b.    SOUL LICENCE ONLY, whole tree  (tools/soul_licence_check.py)
 #   9.     unified gate registry         (tools/preflight_all.py --check)
 #   AP-5.  persisted assistant prose     (tools/transcript_ap5_gate.py, advisory)
 #
@@ -515,6 +516,36 @@ if [ "${ALLOW_PREFLIGHT:-}" != "1" ]; then
         fi
     else
         echo "[Preflight] tools/preflight_all.py absent -- passing loud (registry unrunnable)"
+        echo ""
+    fi
+fi
+
+# ─── Check 8b (blocking): SOUL LICENCE ONLY, whole tree (owner mandate) ───
+# Permanent: exactly one project licence (Soul Forge v1.0,
+# LicenseRef-SoulForge-1.0) in every owned repo. FAST (pre-commit Check 2b)
+# only runs this when licence-relevant files are staged; here the whole tree
+# is re-derived before anything leaves the machine. Measured 2026-11-23:
+# ~13 s on this tree. Declared override, never silent: ALLOW_SOUL_LICENCE=1.
+if [ "${ALLOW_SOUL_LICENCE:-}" = "1" ]; then
+    echo "[Soul] whole-tree gate skipped: ALLOW_SOUL_LICENCE=1 declared."
+    echo ""
+fi
+if [ "${ALLOW_SOUL_LICENCE:-}" != "1" ]; then
+    if [ -f "$SCRIPT_DIR/tools/soul_licence_check.py" ]; then
+        echo "[Soul] Running SOUL LICENCE ONLY whole-tree gate..."
+        SOUL_OUT=$("$PY" "$SCRIPT_DIR/tools/soul_licence_check.py" 2>&1)
+        SOUL_EXIT=$?
+        echo "$SOUL_OUT" | tail -8
+        if [ $SOUL_EXIT -ne 0 ]; then
+            echo ""
+            echo "[Soul] BLOCKED: foreign licence claim in the tree (see above)."
+            echo "[Soul] Fix: remove the foreign claim (Soul Forge v1.0 only)."
+            echo "[Soul] Override (declared): ALLOW_SOUL_LICENCE=1."
+            exit 1
+        fi
+        echo ""
+    else
+        echo "[Soul] tools/soul_licence_check.py absent -- passing loud (gate unrunnable)"
         echo ""
     fi
 fi
