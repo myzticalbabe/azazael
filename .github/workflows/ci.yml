@@ -21,13 +21,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # `pyproject.toml` declares `requires-python = ">=3.15"`, so pinning the
       # job to 3.12 made `pip install -e .` fail before a single test ran
       # (measured on PR #3: "ERROR: Package 'azazael' requires a different
       # Python: 3.12.16 not in '>=3.15'"). The interpreter here must match the
       # one the project says it needs, or the job measures nothing.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.15'
           cache: 'pip'
@@ -83,8 +83,8 @@ jobs:
     timeout-minutes: 120
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.15'
           cache: 'pip'
